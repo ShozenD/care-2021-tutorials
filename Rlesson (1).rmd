@@ -1,0 +1,165 @@
+---
+title: "R Lesson"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Things to include 
+* Data types (vector, list, tables, dataframe) ~ 30 mins  / jaiveer
+      * converting between datatypes (factor(), reordering it, and relabeling them; as.numeric(); etc.)
+* Introduction to indexing (ex in lists, vectors) - tidyverse  ~ 30 mins / shozen 
+* Summary stats - looking at datasets (head(), str(), summary())  ~ 5 mins  / jaiveer 
+* How to make tables (counts and proportions - prop.table())                     ~ 5 mins / jaiveer
+* Visualization (proq freq tables, histograms, boxplots, scatterplots (jitter)) ~ 20 mins   / shozen 
+
+```{r}
+#install.packages("ggplot2")
+#install.packages("car")
+
+library(ggplot2)
+library(car)
+```
+
+
+```{r}
+NHISdataAdult2017 <- read.csv("/Users/jaiveersingh/Desktop/samadult2017.csv")
+
+head(NHISdataAdult2017)
+names(NHISdataAdult2017)
+str(NHISdataAdult2017)
+```
+
+# Referencing Data in R
+
+R allows you to reference particular rows, columns, subgroups of data objects.  This is most easily understood by example.
+
+## Vectors  - all of same data type
+```{r}
+string <- c("red", "blue")
+xvec<- c(1,2,5,16,832)     # numbers put into object xvec
+xvec[3]         # return the third element in this vector
+xvec[c(1,3,5)]  # return the first, third, fifth elements
+xvec[c(1:3)]    #return the first through third elements
+```
+
+## Lists - can be different data types
+```{r}
+xvec <- list("Red",45,c(1,2,5)) # put list into object xvec
+xvec[1]               #return first item from list
+xvec[3]               #return third item from list
+xvec[[3]]             #return third item from list
+newvec <- xvec[[3]]     #put third item into a new object
+```
+
+## Data-frames
+* For data frames, you may reference rows and columns using the method for matrices.
+* However, data frames consist of sub-objects which may be referenced by the column names  (see syntax with $ below).  These sub-objects are particular variables.
+
+```{r}
+NHISdataAdult2017[1,]      #first row and all columns
+NHISdataAdult2017[,15]     #15th column and all rows
+
+NHISdataAdult2017$ASINERV  #Index into column by name
+```
+
+![](/Users/jaiveersingh/Desktop/asinerv.png)
+
+Referencing also allows you to find subsets of observations that meet a certain criteria
+
+```{r}
+nervLargerThanOne <- NHISdataAdult2017[NHISdataAdult2017$ASINERV == 1, ]
+
+nervLargerThanOne <- NHISdataAdult2017[(NHISdataAdult2017$ASINERV == 1 | NHISdataAdult2017$ASINERV == 2 | NHISdataAdult2017$ASINERV == 3), ]
+
+nervLargerThanOne <- NHISdataAdult2017[!(NHISdataAdult2017$ASINERV == 7 | NHISdataAdult2017$ASINERV == 8 | NHISdataAdult2017$ASINERV == 9), ]
+```
+
+```{r}
+onlyAsianAndWhite <- NHISdataAdult2017[(NHISdataAdult2017$MRACBPI2 == 6 | NHISdataAdult2017$MRACBPI2 == 7 | NHISdataAdult2017$MRACBPI2 == 12 | NHISdataAdult2017$MRACBPI2 == 1), ] #Select only NHW, Asian Indians, Chinese, and Filipino
+
+onlyAsianAndWhite$raceRecoded <- Recode(onlyAsianAndWhite$MRACBPI2, '"6" = "Chinese"; "7" = "Filipino"; "12" = "Asian Indian"; "1" = "NHW"')
+```
+
+Now let's try a few things together
+
+Summary Stats and Cool Plots
+```{r}
+onlyAsianAndWhite$ASISLEEP
+
+#Basic visualization as a histogram
+hist(onlyAsianAndWhite$ASISLEEP)
+
+#Cleaned up histogram
+sleepCleaned <- onlyAsianAndWhite[onlyAsianAndWhite$ASISLEEP < 20, ]
+hist(sleepCleaned$ASISLEEP, col = "blue")
+
+#Basic Summary Stats
+summary(sleepCleaned$ASISLEEP)
+```
+
+```{r}
+#Boxplot of just the variable
+boxplot(sleepCleaned$ASISLEEP, col = "blue")
+
+#Boxplot of variable by race
+boxplot(sleepCleaned$ASISLEEP ~ sleepCleaned$raceRecoded, col = c("blue", "red", "pink", "green"))
+```
+
+```{r}
+sleepAndNervCleaned <- sleepCleaned[!(sleepCleaned$ASINERV == 7 | sleepCleaned$ASINERV == 8 | sleepCleaned$ASINERV == 9), ]
+
+#Take a quick look at the relationship between the two, what is the issue with this?
+plot(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$ASINERV, pch = 19, col = "blue")
+
+plot(jitter(sleepAndNervCleaned$ASISLEEP) ~ jitter(sleepAndNervCleaned$ASINERV), pch = 19, col = "blue")
+
+#Get the correlation
+(cor <- cor(sleepAndNervCleaned$ASISLEEP, sleepAndNervCleaned$ASINERV))
+
+#Actually do a Correlation Test 
+cor.test(sleepAndNervCleaned$ASISLEEP, sleepAndNervCleaned$ASINERV)
+
+#Linear Regression Model 
+lm1 <-  lm(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$ASINERV)
+summary(lm1)
+
+plot(jitter(sleepAndNervCleaned$ASISLEEP) ~ jitter(sleepAndNervCleaned$ASINERV), pch = 19, col = "red", ylab = "Hours of Sleep", xlab = "Scale of Nervousness (1 = All the time, 5 = None of the time)")
+abline(lm1$coef, col = "blue", lwd = 3)
+```
+
+Basic T Test
+```{r}
+sleepAndNervCleaned$sexRecoded <- Recode(sleepAndNervCleaned$SEX, '"1" = "Male"; "2" = "Female"')
+
+t.test(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$sexRecoded) 
+```
+
+
+Tables and Frequencies
+```{r}
+asinerv <- onlyAsianAndWhite[!(is.na(onlyAsianAndWhite$ASINERV)), ]
+asinerv <- asinerv[!(asinerv$ASINERV == 7 | asinerv$ASINERV == 8 | asinerv$ASINERV == 9), ]
+
+asinerv_table <- table(asinerv$ASINERV) #raw counts by themselves
+
+asinervbyrace <- table(asinerv$ASINERV, asinerv$raceRecoded) #raw counts by race
+
+racecounts <- colSums(asinervbyrace) 
+
+asinervbyrace_pct <- asinervbyrace
+for (i in 1:length(colnames(asinervbyrace))){
+  asinervbyrace_pct[ ,i] <- (asinervbyrace[ ,i]/ (racecounts[i])) * 100
+}
+
+#Table of Frequencies
+asinervbyrace_pct
+
+#Plot!
+ggplot(data.frame(asinervbyrace_pct), aes(fill=Var1, y=Freq, x=Var2)) + 
+    geom_bar(position="fill", stat="identity") + ggtitle("ASINERV") + annotate("text", x = 1:4, y = .05, label = racecounts)
+```
+
+
