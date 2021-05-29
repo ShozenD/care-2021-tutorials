@@ -1,103 +1,289 @@
 ---
-title: "R Lesson"
+title: "Introduction to Data Analysis in R (1)"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-##Things to include 
-* Data types (vector, list, tables, dataframe) ~ 30 mins  / jaiveer
-      * converting between datatypes (factor(), reordering it, and relabeling them; as.numeric(); etc.)
-* Introduction to indexing (ex in lists, vectors) - tidyverse  ~ 30 mins / shozen 
-* Summary stats - looking at datasets (head(), str(), summary())  ~ 5 mins  / jaiveer 
-* How to make tables (counts and proportions - prop.table())                     ~ 5 mins / jaiveer
-* Visualization (proq freq tables, histograms, boxplots, scatterplots (jitter)) ~ 20 mins   / shozen 
+## Table of Contents
+
+1.  Data types (Jaiveer)
+
+    -   Vectors
+    -   Lists
+    -   Tables
+    -   Data Frames
+
+2.  Working with Data Frames (tidyverse) (Shozen)
+
+    -   
+
+3.  Creating summary statistics (Jaiveer)
+
+    -   `head()`, `str()`, `summary()`
+
+    -   How to make tables
+
+4.  Data Visualization (Intro to ggplot2) (Shozen)
+
+    -   Histograms
+    -   Box plots
+    -   Scatter plots
+
+Things to include \* Data types (vector, list, tables, dataframe) \~ 30
+mins / jaiveer \* converting between datatypes (factor(), reordering it,
+and relabeling them; as.numeric(); etc.) \* Introduction to indexing (ex
+in lists, vectors) - tidyverse \~ 30 mins / shozen \* Summary stats -
+looking at datasets (head(), str(), summary()) \~ 5 mins / jaiveer \*
+How to make tables (counts and proportions - prop.table()) \~ 5 mins /
+jaiveer \* Visualization (proq freq tables, histograms, boxplots,
+scatterplots (jitter)) \~ 20 mins / shozen
+
+### Installing and Loading Packages
 
 ```{r}
-#install.packages("ggplot2")
-#install.packages("car")
+# install.packages("tidyverse")
+# install.packages("car")
 
-library(ggplot2)
-library(car)
+library(tidyverse)
 ```
 
-
-```{r}
-NHISdataAdult2017 <- read.csv("/Users/jaiveersingh/Desktop/samadult2017.csv")
-
-head(NHISdataAdult2017)
-names(NHISdataAdult2017)
-str(NHISdataAdult2017)
+```{r message = F, warning = F}
+df.nhis <- read_csv("samadult_2017.csv")
+head(df.nhis)
 ```
 
 # Referencing Data in R
 
-R allows you to reference particular rows, columns, subgroups of data objects.  This is most easily understood by example.
+R allows you to reference particular rows, columns, subgroups of data
+objects. This is most easily understood by example.
 
-## Vectors  - all of same data type
+## Vectors - all of same data type
+
 ```{r}
-string <- c("red", "blue")
-xvec<- c(1,2,5,16,832)     # numbers put into object xvec
-xvec[3]         # return the third element in this vector
-xvec[c(1,3,5)]  # return the first, third, fifth elements
-xvec[c(1:3)]    #return the first through third elements
+a <- c("red", "blue")
+b <- c(1,2,5,16,832)     # numbers put into object xvec
+b[3]         # return the third element in this vector
+b[c(1,3,5)]  # return the first, third, fifth elements
+b[c(1:3)]    #return the first through third elements
 ```
 
 ## Lists - can be different data types
+
 ```{r}
-xvec <- list("Red",45,c(1,2,5)) # put list into object xvec
-xvec[1]               #return first item from list
-xvec[3]               #return third item from list
-xvec[[3]]             #return third item from list
-newvec <- xvec[[3]]     #put third item into a new object
+x <- list("Red",45,c(1,2,5)) # put list into object xvec
+x[1]               #return first item from list
+x[3]               #return third item from list
+x[[3]]             #return third item from list
+x.new <- xvec[[3]]     #put third item into a new object
 ```
 
-## Data-frames
-* For data frames, you may reference rows and columns using the method for matrices.
-* However, data frames consist of sub-objects which may be referenced by the column names  (see syntax with $ below).  These sub-objects are particular variables.
+### Working with Data Frames (Brief introduction to Tidyverse)
+
+-   As a data scientist you will be spending 70 \~ 90 % of the time
+    pre-processing data (i.e. cleaning, re-coding, re-formatting).
+-   Using indexing and other traditional ways of formatting data works
+    BUT the code can get really long and complex, which increases the
+    chances of error.
+-   R is a old language (28 years old!), so most of the new innovation
+    occurs in the shape of software packages. There is a coherent system
+    of packages for data manipulation, exploration, and visualization
+    called `tidyverse` that will make your life much easier.
+-   We will be covering `dplyr` and `ggplot2` (both are part of the
+    `tidyverse` ecosystem) in this tutorial.
+
+\`dplyr\` aims to provide a function for each basic verb of data
+manipulation. I will introduce the 3 most heavily used "verbs" but if
+you want to know what else is available, check out this [cheet
+sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf).
+
+#### Renaming Columns
+
+One of the first things you'll notice about NHIS is that some columns
+have really obscure column names. For example, the column that contains
+the race/ethnicity info is called \`MRACBPI2\` (Don't ask me why...).
+So, one the first things you'll probably want to do is change the name!
 
 ```{r}
-NHISdataAdult2017[1,]      #first row and all columns
-NHISdataAdult2017[,15]     #15th column and all rows
+### Make a copy of the NHIS data frame ###
+df.nhis.copy <- df.nhis
 
-NHISdataAdult2017$ASINERV  #Index into column by name
+### Traditional way of doing it (not recommended) ###
+
+nhis.colnames <- names(df.nhis.copy) # A vector of column names in the dataframe
+which(nhis.colnames == "MRACBPI2") # Figure out the column number of MRACBPI2
+nhis.colnames[12] <- "race" # Change "MRACBPI2" to "race"
+names(df.nhis.copy) <- nhis.colnames # Rename the column in the dataframe
+
+df.nhis.copy$race # Check
+
+# names(df.nhis.copy)[names(df.nhis.copy) == "MRACBPI2"] <- "race" # A one liner
+
+### The dplyr way of doing it ###
+df.nhis <- dplyr::rename(df.nhis, race = MRACBPI2) # There may be other functions named rename
+                                                   # thus I'm specifying that I want dplyr's
+                                                   # rename function using dplyr::
+df.nhis$race # Check
+
+# I can also rename multiple columns
+df.nhis <- dplyr::rename(df.nhis,
+                         age = AGE_P,
+                         sex = SEX,
+                         smoke = SMKSTAT2,
+                         alcohol = ALCSTAT)
+
+# I can also do this (More advanced but may come in handy)
+old.names <- c("STREV", "CANEV", "EPHEV", "DIBEV1", "HYPEV")           # The index of names
+new.names <- c("stroke", "cancer", "lung", "diabetes", "hypertension") # must match
+
+df.nhis <- rename_at(df.nhis, vars(old.names), ~new.names)
+
+# To see the manual for "rename" you can type
+?rename
 ```
 
-![](/Users/jaiveersingh/Desktop/asinerv.png)
+#### Selecting Columns
 
-Referencing also allows you to find subsets of observations that meet a certain criteria
+Another thing you may be thinking now is that 702 columns is too much! I
+don't need all the variables, I only need the ones that I am interested
+in! To select columns, simply use the \`select\` verb.
 
 ```{r}
-nervLargerThanOne <- NHISdataAdult2017[NHISdataAdult2017$ASINERV == 1, ]
+### Traditional way ###
+# select a single column
+df.nhis[,"age"]
 
-nervLargerThanOne <- NHISdataAdult2017[(NHISdataAdult2017$ASINERV == 1 | NHISdataAdult2017$ASINERV == 2 | NHISdataAdult2017$ASINERV == 3), ]
+# select multiple columns
+df.nhis[,c("age", "sex", "race", "stroke", "cancer")]
 
-nervLargerThanOne <- NHISdataAdult2017[!(NHISdataAdult2017$ASINERV == 7 | NHISdataAdult2017$ASINERV == 8 | NHISdataAdult2017$ASINERV == 9), ]
+### dyplr way ###
+# select a single column
+select(df.nhis, age)
+
+# select multiple columns
+select(df.nhis, age, sex)
+
+# EXERCISE: Select the columns for age, sex, race, stroke, diabetes, and hypertension
+#           and save it in a dataframe called df.nhis.2 
+
+# df.nhis.2 <- (Uncomment and enter your code here)
+  
+# Again, you can read the documentation for "select" by doing:
+?select
 ```
 
-```{r}
-onlyAsianAndWhite <- NHISdataAdult2017[(NHISdataAdult2017$MRACBPI2 == 6 | NHISdataAdult2017$MRACBPI2 == 7 | NHISdataAdult2017$MRACBPI2 == 12 | NHISdataAdult2017$MRACBPI2 == 1), ] #Select only NHW, Asian Indians, Chinese, and Filipino
+#### Creating New Columns and Re-coding Variables
 
-onlyAsianAndWhite$raceRecoded <- Recode(onlyAsianAndWhite$MRACBPI2, '"6" = "Chinese"; "7" = "Filipino"; "12" = "Asian Indian"; "1" = "NHW"')
+Let's take a look at the sex column for a second.
+
+```{r}
+df.nhis.2$sex
 ```
 
-Now let's try a few things together
+It seems like the sex variable is a bunch of 1s and 2s. From the code
+book we know that 1 means male and 2 means female, but this is anyone
+without a code book won't know this and it is easy to forget. We want to
+re-code this variable such that instead of 1s and 2s, we have "males"
+and "females". We can do this by creating a new column using the
+`mutate` verb in combination with `ifelse`. I will also introduce a
+really convenient function \`%\>%\` called a pipe function.
 
-Summary Stats and Cool Plots
 ```{r}
-onlyAsianAndWhite$ASISLEEP
+df.nhis.2 %>% 
+  mutate(
+    r_sex = ifelse(sex == 1, "male", "female"),
+  )
 
-#Basic visualization as a histogram
-hist(onlyAsianAndWhite$ASISLEEP)
+# Without %>%
+df.nhis.2 <- mutate(df.nhis.2, 
+                    r_sex = ifelse(sex == 1, "male", "female"))
+```
 
-#Cleaned up histogram
-sleepCleaned <- onlyAsianAndWhite[onlyAsianAndWhite$ASISLEEP < 20, ]
-hist(sleepCleaned$ASISLEEP, col = "blue")
+The pipe function passes the data frame to the mutate function, which
+means we don't have to type `mutate(df.nhis.2, ...)`. I will demonstrate
+later how using the pipe function will make your code much more shorter
+and readable.
 
-#Basic Summary Stats
-summary(sleepCleaned$ASISLEEP)
+Here, we use `mutate` to create a new column named `r_sex` (short for
+re-coded sex) where if the value of the `sex` column was "1", then
+`r_sex` would be coded as "male". Else, `r_sex` would be coded as
+"female".
+
+```{r}
+# EXERCISE: Create a new column named r_diabetes, that recodes the diabetes column
+#           Hint: 1 -> "yes", 2 -> "no", 3 ~> Ignore for now!
+
+# df.nhis.2 <- (Uncomment and enter your code here!)
+```
+
+Now that we have re-coded `sex` and `diabetes` let's try and re-code
+`race`. The `ifelse` verb worked well on the previous two variables
+because they are binary, but `race` has multiple categories (well
+duh...) so we need something else. Fortunately, there is a generalized
+if-else verb called `case_when`.
+
+```{r}
+# Using mutate and case_when to recode race
+df.nhis.2 <- df.nhis.2 %>%
+  mutate(
+    r_race = case_when(
+      race == 1 ~ "nhw",
+      race == 6 ~ "chinese",
+      race == 7 ~ "filipino",
+      race == 12 ~ "asian indian",
+      TRUE ~ "other" # Handles all other cases!
+    )
+    r_race = factor(r_race, levels = c("nhw", "chinese", "filipino", "asian indian"))
+  )
+
+# While we're at it let's also stratify the age variable
+df.nhis.2 <- df.nhis.2 %>%
+  mutate(
+    r_age = case_when(
+      age < 26 ~ "18~25",
+      age < 45 ~ "26~44",
+      age < 65 ~ "45~64",
+      age >= 65 ~ "+65"
+    ),
+    r_age = factor(age, levels = c("18~25","26~44","45~64","+65"))
+  )
+
+# A fancy way of doing it for advanced users
+df.nhis.2 %>%
+  mutate(
+    r_race = plyr::mapvalues(race,
+                             from = c(1,6,7,12),
+                             to = c("nhw", "chinese", "filipino", "asian indian"))
+  )
+
+# EXERCISE: Using mutate and case_when, recode the diabetes column again but this time:
+#           1 -> "yes", 2 -> "no", 3 -> "prediabetes"
+```
+
+#### Filtering rows
+
+Sometimes (a lot of times really), you want to limit your sample to
+respondents with a certain characteristic. For example, this program
+focuses on Asian American subgroups so we might want to filter out the
+other race groups from our sample (Not that they are not important!).
+For this, we can use the `filter` verb.
+
+```{r}
+# Filter the data for nhw, and AA subgroups
+df.nhis.2 %>% 
+  filter(r_race %in% c("nhw", "chinese", "filipino", "asian indian")) # %in% = if included in
+
+# Use can also do
+df.nhis.2 %>%
+  filter(r_race != "other") # != means "not equal to"
+
+# EXERCISE: Filter out those responents who have prediabetes
+# df.nhis.2 %>% filter(...Your code here...)
 ```
 
 ```{r}
@@ -131,14 +317,15 @@ abline(lm1$coef, col = "blue", lwd = 3)
 ```
 
 Basic T Test
+
 ```{r}
 sleepAndNervCleaned$sexRecoded <- Recode(sleepAndNervCleaned$SEX, '"1" = "Male"; "2" = "Female"')
 
 t.test(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$sexRecoded) 
 ```
 
-
 Tables and Frequencies
+
 ```{r}
 asinerv <- onlyAsianAndWhite[!(is.na(onlyAsianAndWhite$ASINERV)), ]
 asinerv <- asinerv[!(asinerv$ASINERV == 7 | asinerv$ASINERV == 8 | asinerv$ASINERV == 9), ]
@@ -161,5 +348,3 @@ asinervbyrace_pct
 ggplot(data.frame(asinervbyrace_pct), aes(fill=Var1, y=Freq, x=Var2)) + 
     geom_bar(position="fill", stat="identity") + ggtitle("ASINERV") + annotate("text", x = 1:4, y = .05, label = racecounts)
 ```
-
-
