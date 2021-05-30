@@ -58,29 +58,70 @@ df.nhis <- read_csv("samadult_2017.csv")
 head(df.nhis)
 ```
 
-# Referencing Data in R
-
-R allows you to reference particular rows, columns, subgroups of data
-objects. This is most easily understood by example.
+## Data Types Overview
+*   Vectors are one dimensionsal objects of length n, all one data type
+*   Lists are an ordered lists of miscellaneous objects
+*   Dataframes are rectangular arrays (rows and columns) of **mixed** data types (each column can be a different data type)
 
 ## Vectors - all of same data type
 
 ```{r}
-a <- c("red", "blue")
-b <- c(1,2,5,16,832)     # numbers put into object xvec
+# To define a vector, you should just use vector <- c() and separate elements with a ,
+a <- c("red", "blue")    # strings put into object b
+b <- c(1,2,5,16,832)     # numbers put into object b
 b[3]         # return the third element in this vector
 b[c(1,3,5)]  # return the first, third, fifth elements
 b[c(1:3)]    #return the first through third elements
+
+# Exercise - for the vector below, rename the third element to "red" and print out the 4th element
+test <- c("blue", "yellow", "green", "purple")
+# Insert code here
 ```
 
 ## Lists - can be different data types
 
 ```{r}
-x <- list("Red",45,c(1,2,5)) # put list into object xvec
+x <- list("Red",45,c(1,2,5)) # put different variable types into list x
 x[1]               #return first item from list
-x[3]               #return third item from list
-x[[3]]             #return third item from list
+x[3]               #return third item from list as a list
+x[[3]]             #return third item from list not as a list
+
+class(x[3])               
+class(x[[3]]) 
+
 x.new <- xvec[[3]]     #put third item into a new object
+```
+
+## Tables - tables are a convenient way to organize data of a certain data type
+
+```{r}
+## Numerical Table - one way
+table(df.nhis$SEX)
+
+## Numerical Table - two way
+table(df.nhis$MRACBPI2, df.nhis$SEX) #MRACBPI2 = race
+```
+
+```{r}
+## Proportion Table! 
+y <- table(df.nhis$MRACBPI2, df.nhis$SEX)
+
+# The margin parameter represents whether you want to determine the proportions by row (1) or by column ()
+prop.table(y, margin = 1) 
+prop.table(y, margin = 2) 
+
+# Exercise - create a proportion table between the variables MRACBPI2 and AGE_P, with proportions determined by column
+# Insert code here
+```
+
+## Dataframe! - this will be the datatype that you use the most. It is the easiest way to deal with large data in R. Each column can be its own data type. Most functions require dataframes as inputs. 
+
+```{r}
+# df.nhis <- read_csv("samadult_2017.csv")
+# Dataframes can be imported in R as done above 
+
+# Or we can convert tables into dataframes
+y.df <- as.data.frame(y)
 ```
 
 ### Working with Data Frames (Brief introduction to Tidyverse)
@@ -182,7 +223,7 @@ select(df.nhis, age, sex)
 Let's take a look at the sex column for a second.
 
 ```{r}
-df.nhis.2$sex
+df.nhis.2$sex # Extract a column as a vector
 ```
 
 It seems like the sex variable is a bunch of 1s and 2s. From the code
@@ -285,6 +326,36 @@ df.nhis.2 %>%
 # EXERCISE: Filter out those responents who have prediabetes
 # df.nhis.2 %>% filter(...Your code here...)
 ```
+
+## Dataframe Summaries
+
+To get the size/dimension/length of objects use
+
+*  `dim()` for matrices and dataframes
+*  `length()` for vectors and lists
+
+To find out the type of an object use 
+
+*  `str()`  - this gives the structure of an object
+
+```{r}
+# See the first 5 rows of a dataframe
+head(df.nhis.2)
+
+# See the last 5 rows of a dataframe
+tail(df.nhis.2)
+
+# See all the columns of the dataframe
+names(df.nhis.2)
+
+# See the data types of all the variables
+str(df.nhis.2)
+
+#If you have a column that is numeric and want the 5 number summary
+summary(df.nhis.2$AGE_P)
+```
+
+## Appendix
 
 ```{r}
 #Boxplot of just the variable
