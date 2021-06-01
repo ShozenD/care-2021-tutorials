@@ -286,6 +286,8 @@ df.nhis.2 %>%
 # df.nhis.2 %>% filter(...Your code here...)
 ```
 
+TODO: `group_by` and `summarise`
+
 ```{r}
 #Boxplot of just the variable
 boxplot(sleepCleaned$ASISLEEP, col = "blue")
