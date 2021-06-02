@@ -35,18 +35,9 @@ knitr::opts_chunk$set(echo = TRUE)
     -   Box plots
     -   Scatter plots
 
-Things to include \* Data types (vector, list, tables, dataframe) \~ 30
-mins / jaiveer \* converting between datatypes (factor(), reordering it,
-and relabeling them; as.numeric(); etc.) \* Introduction to indexing (ex
-in lists, vectors) - tidyverse \~ 30 mins / shozen \* Summary stats -
-looking at datasets (head(), str(), summary()) \~ 5 mins / jaiveer \*
-How to make tables (counts and proportions - prop.table()) \~ 5 mins /
-jaiveer \* Visualization (proq freq tables, histograms, boxplots,
-scatterplots (jitter)) \~ 20 mins / shozen
-
 ### Installing and Loading Packages
 
-```{r}
+```{r message = FALSE, warning = FALSE}
 # install.packages("tidyverse")
 # install.packages("car")
 
@@ -54,14 +45,15 @@ library(tidyverse)
 ```
 
 ```{r message = F, warning = F}
-df.nhis <- read_csv("samadult_2017.csv")
-head(df.nhis)
+df.nhis <- read_csv("data/samadult_2017.csv")
 ```
 
 ## Data Types Overview
-*   Vectors are one dimensionsal objects of length n, all one data type
-*   Lists are an ordered lists of miscellaneous objects
-*   Dataframes are rectangular arrays (rows and columns) of **mixed** data types (each column can be a different data type)
+
+-   Vectors are one dimensional objects of length n, all one data type
+-   Lists are an ordered lists of miscellaneous objects
+-   Data Frames are rectangular arrays (rows and columns) of **mixed**
+    data types (each column can be a different data type)
 
 ## Vectors - all of same data type
 
@@ -114,7 +106,7 @@ prop.table(y, margin = 2)
 # Insert code here
 ```
 
-## Dataframe! - this will be the datatype that you use the most. It is the easiest way to deal with large data in R. Each column can be its own data type. Most functions require dataframes as inputs. 
+## Dataframe! - this will be the datatype that you use the most. It is the easiest way to deal with large data in R. Each column can be its own data type. Most functions require dataframes as inputs.
 
 ```{r}
 # df.nhis <- read_csv("samadult_2017.csv")
@@ -328,16 +320,17 @@ df.nhis.2 %>%
 ```
 
 TODO: `group_by` and `summarise`
-## Dataframe Summaries
+
+### Data Frame Summaries
 
 To get the size/dimension/length of objects use
 
-*  `dim()` for matrices and dataframes
-*  `length()` for vectors and lists
+-   `dim()` for matrices and dataframes
+-   `length()` for vectors and lists
 
-To find out the type of an object use 
+To find out the type of an object use
 
-*  `str()`  - this gives the structure of an object
+-   `str()` - this gives the structure of an object
 
 ```{r}
 # See the first 5 rows of a dataframe
@@ -355,6 +348,49 @@ str(df.nhis.2)
 #If you have a column that is numeric and want the 5 number summary
 summary(df.nhis.2$AGE_P)
 ```
+
+## Introduction to Data Visualization with ggplot2
+
+For your in-class projects this week you will be exploring the data sets
+in order to gain a better understanding of them and to start developing
+your research question. You will be presenting these preliminary results
+to the implementation fellows, TAs, as well as Drs. Srinivasan, and
+Palaniappan. To maximally capitalize our time together, you should make
+sure that your data is presented with graphics that are easy to read and
+understand. This section will cover the basics of\`ggplot2\` and how to
+create some basic plots that you will be using heavily this week.
+
+[!ggplot-layers]("./figures/ggplot-layered.png")
+
+Recommended Reading: [A Layered Grammar of
+Graphics](https://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf)
+by Hadley Wickham
+
+### Scatter Plot
+
+```{r}
+head(iris)
+
+ggplot(iris, aes(x = Sepal.Length, y = Petal.Length, color = Species)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") + 
+  labs(
+    x = "Sepal Length [cm]",
+    y = "Petal Length [cm]",
+    title = "Relationship between sepal and petal",
+    subtitle = "Iris Dataset"
+  ) + 
+  scale_x_continuous(limits = c(3,8)) + 
+  scale_y_continuous(limits = c(1,8)) + 
+  theme_classic() + 
+  theme(aspect.ratio = 1)
+```
+
+### Histogram
+
+### Box Plot
+
+### Stacked Bar Plot
 
 ## Appendix
 
