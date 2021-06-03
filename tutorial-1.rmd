@@ -10,32 +10,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Table of Contents
-
-1.  Data types (Jaiveer)
-
-    -   Vectors
-    -   Lists
-    -   Tables
-    -   Data Frames
-
-2.  Working with Data Frames (tidyverse) (Shozen)
-
-    -   
-
-3.  Creating summary statistics (Jaiveer)
-
-    -   `head()`, `str()`, `summary()`
-
-    -   How to make tables
-
-4.  Data Visualization (Intro to ggplot2) (Shozen)
-
-    -   Histograms
-    -   Box plots
-    -   Scatter plots
-
-### Installing and Loading Packages
+## Installing and Loading Packages
 
 ```{r message = FALSE, warning = FALSE}
 # install.packages("tidyverse")
@@ -50,12 +25,15 @@ df.nhis <- read_csv("data/samadult_2017.csv")
 
 ## Data Types Overview
 
--   Vectors are one dimensional objects of length n, all one data type
--   Lists are an ordered lists of miscellaneous objects
--   Data Frames are rectangular arrays (rows and columns) of **mixed**
-    data types (each column can be a different data type)
+-   **Vectors** are one dimensional objects of length N, all one data
+    type
+-   **Lists** are an ordered lists of miscellaneous objects
+-   **Data Frames** are rectangular arrays (rows and columns) of
+    **mixed** data types (each column can be a different data type)
 
-## Vectors - all of same data type
+#### Vectors
+
+all of same data type
 
 ```{r}
 # To define a vector, you should just use vector <- c() and separate elements with a ,
@@ -70,7 +48,9 @@ test <- c("blue", "yellow", "green", "purple")
 # Insert code here
 ```
 
-## Lists - can be different data types
+#### Lists
+
+can be different data types
 
 ```{r}
 x <- list("Red",45,c(1,2,5)) # put different variable types into list x
@@ -84,7 +64,9 @@ class(x[[3]])
 x.new <- xvec[[3]]     #put third item into a new object
 ```
 
-## Tables - tables are a convenient way to organize data of a certain data type
+#### Tables
+
+tables are a convenient way to organize data of a certain data type
 
 ```{r}
 ## Numerical Table - one way
@@ -106,7 +88,11 @@ prop.table(y, margin = 2)
 # Insert code here
 ```
 
-## Dataframe! - this will be the datatype that you use the most. It is the easiest way to deal with large data in R. Each column can be its own data type. Most functions require dataframes as inputs.
+#### Dataframes!
+
+This will be the datatype that you use the most. It is the easiest way
+to deal with large data in R. Each column can be its own data type. Most
+functions require dataframes as inputs.
 
 ```{r}
 # df.nhis <- read_csv("samadult_2017.csv")
@@ -116,7 +102,33 @@ prop.table(y, margin = 2)
 y.df <- as.data.frame(y)
 ```
 
-### Working with Data Frames (Brief introduction to Tidyverse)
+To get the size/dimension/length of objects use
+
+-   `dim()` for matrices and dataframes
+-   `length()` for vectors and lists
+
+To find out the type of an object use
+
+-   `str()` - this gives the structure of an object
+
+```{r}
+# See the first 5 rows of a dataframe
+head(df.nhis.2)
+
+# See the last 5 rows of a dataframe
+tail(df.nhis.2)
+
+# See all the columns of the dataframe
+names(df.nhis.2)
+
+# See the data types of all the variables
+str(df.nhis.2)
+
+#If you have a column that is numeric and want the 5 number summary
+summary(df.nhis.2$AGE_P)
+```
+
+## Working with Data Frames (Brief introduction to Tidyverse)
 
 -   As a data scientist you will be spending 70 \~ 90 % of the time
     pre-processing data (i.e. cleaning, re-coding, re-formatting).
@@ -130,7 +142,7 @@ y.df <- as.data.frame(y)
 -   We will be covering `dplyr` and `ggplot2` (both are part of the
     `tidyverse` ecosystem) in this tutorial.
 
-\`dplyr\` aims to provide a function for each basic verb of data
+`dplyr` aims to provide a function for each basic verb of data
 manipulation. I will introduce the 3 most heavily used "verbs" but if
 you want to know what else is available, check out this [cheet
 sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf).
@@ -139,8 +151,8 @@ sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsh
 
 One of the first things you'll notice about NHIS is that some columns
 have really obscure column names. For example, the column that contains
-the race/ethnicity info is called \`MRACBPI2\` (Don't ask me why...).
-So, one the first things you'll probably want to do is change the name!
+the race/ethnicity info is called **MRACBPI2** (Don't ask me why). So,
+one the first things you'll probably want to do is change the name!
 
 ```{r}
 ### Make a copy of the NHIS data frame ###
@@ -184,7 +196,7 @@ df.nhis <- rename_at(df.nhis, vars(old.names), ~new.names)
 
 Another thing you may be thinking now is that 702 columns is too much! I
 don't need all the variables, I only need the ones that I am interested
-in! To select columns, simply use the \`select\` verb.
+in! To select columns, simply use the `select` verb (function).
 
 ```{r}
 ### Traditional way ###
@@ -201,8 +213,10 @@ select(df.nhis, age)
 # select multiple columns
 select(df.nhis, age, sex)
 
-# EXERCISE: Select the columns for age, sex, race, stroke, diabetes, and hypertension
+# EXERCISE: Select the columns for age, sex, race, smoke, stroke, diabetes, and hypertension
 #           and save it in a dataframe called df.nhis.2 
+df.nhis.2 <- df.nhis %>% 
+  select(age, sex, race, smoke, stroke, diabetes, hypertension)
 
 # df.nhis.2 <- (Uncomment and enter your code here)
   
@@ -224,7 +238,7 @@ without a code book won't know this and it is easy to forget. We want to
 re-code this variable such that instead of 1s and 2s, we have "males"
 and "females". We can do this by creating a new column using the
 `mutate` verb in combination with `ifelse`. I will also introduce a
-really convenient function \`%\>%\` called a pipe function.
+really convenient function `%>%` called a pipe function.
 
 ```{r}
 df.nhis.2 %>% 
@@ -269,8 +283,8 @@ df.nhis.2 <- df.nhis.2 %>%
       race == 6 ~ "chinese",
       race == 7 ~ "filipino",
       race == 12 ~ "asian indian",
-      TRUE ~ "other" # Handles all other cases!
-    )
+      TRUE ~ "other"  # Handles all other cases!
+    ),
     r_race = factor(r_race, levels = c("nhw", "chinese", "filipino", "asian indian"))
   )
 
@@ -283,7 +297,7 @@ df.nhis.2 <- df.nhis.2 %>%
       age < 65 ~ "45~64",
       age >= 65 ~ "+65"
     ),
-    r_age = factor(age, levels = c("18~25","26~44","45~64","+65"))
+    r_age = factor(r_age, levels = c("18~25","26~44","45~64","+65"))
   )
 
 # A fancy way of doing it for advanced users
@@ -294,8 +308,16 @@ df.nhis.2 %>%
                              to = c("nhw", "chinese", "filipino", "asian indian"))
   )
 
-# EXERCISE: Using mutate and case_when, recode the diabetes column again but this time:
+# EXERCISE: Using mutate() and case_when() recode the diabetes column again, but this time:
 #           1 -> "yes", 2 -> "no", 3 -> "prediabetes"
+df.nhis.2 <- df.nhis.2 %>%
+  mutate(
+    r_diab = case_when(
+      diabetes == 1 ~ "yes",
+      diabetes == 2 ~ "no",
+      diabetes == 3 ~ "prediabetes"
+    )
+  )
 ```
 
 #### Filtering rows
@@ -317,36 +339,74 @@ df.nhis.2 %>%
 
 # EXERCISE: Filter out those responents who have prediabetes
 # df.nhis.2 %>% filter(...Your code here...)
+df.nhis.2 <- df.nhis.2 %>% 
+  filter(r_diab != "prediabetes")
 ```
 
-TODO: `group_by` and `summarise`
+#### Creating Summaries by Group
 
-### Data Frame Summaries
+In the previous section, we learned about how to create bi-variate
+summary tables using the `table()` and `prop.table()` functions. For
+example we created a table that had the counts for each race/ethnicity
+for each age group. If we were to do this by hand, we would probably
+begin by:
 
-To get the size/dimension/length of objects use
+1.  Splitting the dataset into groups (age, race/ethnicity) (**Split**)
+2.  Count the number of respondents in each group (**Apply**)
+3.  Combine the results into a summary table (**Combine**)
 
--   `dim()` for matrices and dataframes
--   `length()` for vectors and lists
-
-To find out the type of an object use
-
--   `str()` - this gives the structure of an object
+Many data analysis tasks can be approached using this
+split-apply-combine paradigm, and `dplyr` makes this every easy through
+the use of `group_by()` and `summarise()` functions. Let's begin with an
+easy example where we count the number of repondents in each
+race/ethnicity group.
 
 ```{r}
-# See the first 5 rows of a dataframe
-head(df.nhis.2)
+df.nhis.2 %>% 
+  group_by(r_race) %>%
+  summarise(count = n())
+```
 
-# See the last 5 rows of a dataframe
-tail(df.nhis.2)
+Here, we used `group_by(r_race)` to group the data by race/ethnicity
+which is then passed on to the `summarise()` function to compute the
+counts. Within the `summarise()` function, `count` is the name we want
+to give to the column of the summary table and `n()` tells the program
+to count the number of observations. In other words, we're telling the
+program to count the number of obs. per group and put it into a column
+named "count".
 
-# See all the columns of the dataframe
-names(df.nhis.2)
+We can also group by two variables (e.g. race/ethnicity and age)
 
-# See the data types of all the variables
-str(df.nhis.2)
+```{r}
+df.nhis.2 %>% 
+  group_by(r_race, r_age) %>% 
+  summarise(count = n())
 
-#If you have a column that is numeric and want the 5 number summary
-summary(df.nhis.2$AGE_P)
+# EXERCISE: Using group_by() and summarise() compute the number of people with diabetes in each race group
+df.nhis.2 %>%
+  group_by(r_race, r_diab) %>%
+  summarise(count = n())
+```
+
+Now that we have the counts, we naturally want to compute the frequency.
+This is a bit trickier to do but straight forward once you get used to
+it. Going back to the race/ethnicity and age example, we need to first
+use `ungroup()` to reset the grouping. We than call `group_by()` again
+with only the `r_race` variable such that we only group by
+race/ethnicity. Now, when we use statistical summary functions such as
+`n()`, `sum()`, `mean()`, `median()`, they will calculate the value for
+each race/ethnicity group. To create a new column, recall that we use
+`mutate()`. We can create a new column named `prop` by dividing the raw
+count by the total count within each race/ethnicity group, computed by
+`sum(count)` to obtain the frequency.
+
+```{r}
+df.nhis.2 %>%
+  group_by(r_race, r_age) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(r_race) %>%
+  mutate(prop = count/sum(count) * 100)
 ```
 
 ## Introduction to Data Visualization with ggplot2
@@ -360,99 +420,144 @@ sure that your data is presented with graphics that are easy to read and
 understand. This section will cover the basics of\`ggplot2\` and how to
 create some basic plots that you will be using heavily this week.
 
-[!ggplot-layers]("./figures/ggplot-layered.png")
+`ggplot2` is a R package for producing statistical graphics and is
+written by [Hadley Wickham](http://hadley.nz), a giant for modern
+statistical computing in R. Unlike other graphics packages, `ggplot2`
+has an underlying
+[grammar](https://www.springer.com/gp/book/9780387245447) which makes it
+easy to learn and intuitive to work with. I will only be going over the
+very basics here, but if you want to master \`ggplot2\` Dr. Wickham has
+released his [book](https://ggplot2-book.org/introduction.html) for free
+online.
 
-Recommended Reading: [A Layered Grammar of
-Graphics](https://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf)
-by Hadley Wickham
+### First Steps
 
-### Scatter Plot
+![The 7 layers of
+ggplot2](https://raw.githubusercontent.com/ShozenD/care-tutorials-2021/main/figures/ggplot-layered.png){width="367"}
+
+When you create plots using \`ggplot2\` you want to think in terms of
+"layers". The figure above gives you a very good image of each layer and
+their ordering. Let's start with the three most important layers at the
+bottom.
+
+Every \`ggplot2\` plot has three key components:
+
+1.  **data**. The foundation of your plot and always the first argument
+    of the `ggplot` function.
+2.  A set of **aesthetic mappings** between variables in the data and
+    visual properties (e.g. x-axis, y-axis, color, shape, size).
+    Aesthetic mappings are defined using the `aes` function.
+3.  At least one geometric layer which describes how to render (i.e.
+    draw) each observation. Layers are usually created with a `geom`
+    function.
 
 ```{r}
 head(iris)
 
-ggplot(iris, aes(x = Sepal.Length, y = Petal.Length, color = Species)) + 
-  geom_point() + 
-  geom_smooth(method = "lm") + 
-  labs(
-    x = "Sepal Length [cm]",
-    y = "Petal Length [cm]",
-    title = "Relationship between sepal and petal",
-    subtitle = "Iris Dataset"
+ggplot(iris, aes(x = Sepal.Length, y = Petal.Length)) + 
+  geom_point()
+
+# EXERCISE: Create a scatter plot of Sepal.Length and Sepal.Width and color it by Species
+```
+
+Pay attention to the structure of program (i.e. function call): data and
+aesthetic mappings are supplied to `ggplot()`, then geometric layers are
+added with `+`. This is the basic pattern for every `ggplot2` program.
+
+```{r}
+# EXERCISE: Lets create some plots using df.nhis.2
+
+# 1. A histogram of age. hint: Use geom_histogram()
+ggplot(df.nhis.2, aes(x = age)) + 
+  geom_histogram()
+
+# 2. Boxplots with recoded race (r_race) on the x-axis and age on the y-axis. 
+# hint: Use geom_boxplot()
+ggplot(df.nhis.2, aes(x = r_race, y = age)) + 
+  geom_boxplot()
+
+# 3. A barplot for race counts (r_race). hint: geom_bar()
+ggplot(df.nhis.2, aes(r_race)) + 
+  geom_bar()
+```
+
+Now that we have the basics down, we can begin to use `ggplot` to
+visualize our data. In a previous section you learned about how to make
+bi-variate summary tables. For example, if we want to find the number of
+respondents with diabetes within each race/ethnicity group we can easily
+create a table by:
+
+```{r}
+table(df.nhis.2$r_race, df.nhis.2$r_diab)
+```
+
+However, when you present this data you want use plots not tables. To do
+this we need to go through the following two steps.
+
+1.  Count the number of obs. in each group.
+2.  Create a stacked bar plot
+
+Recall that we can count obs. in groups using the `group_by()` and
+`summarise()` functions.
+
+```{r}
+df.diab <- df.nhis.2 %>% 
+  group_by(r_race, r_diab) %>% 
+  summarise(n = n())
+```
+
+We can then pass this data to ggplot2 for plotting. We want
+race/ethnicity to be on the x-axis, the number of counts on the y-axis,
+and we want to color the bars by diabetes status. Recall that to create
+a bar plot we use the `geom_bar()` function. In order to create a
+stacked bar plot, within the `geom_bar()` function we need to set
+`position = "fill"` and `stat = "identity"` as such:
+
+```{r}
+ggplot(df.diab, aes(x = r_race, y = n, fill = r_diab)) + 
+  geom_bar(
+    position = "fill", 
+    stat = "identity"
+  )
+```
+
+Now, instead of absolute counts we can see the proportion of people with
+diabetes in each race/ethnicity group! But we can't show this plot to
+anyone yet because it doesn't have a title, the y-axis has the wrong
+label, and the legend has a terrible name. We can customize the labels
+using the `labs()` function.
+
+```{r}
+ggplot(df.diab, aes(x = r_race, y = n, fill = r_diab)) + 
+  geom_bar(
+    position = "fill", 
+    stat = "identity"
   ) + 
-  scale_x_continuous(limits = c(3,8)) + 
-  scale_y_continuous(limits = c(1,8)) + 
-  theme_classic() + 
+  labs(
+    x = "Race/Ethnicity",
+    y = "Proportion",
+    fill = "Diabetes Status"
+  )
+```
+
+If you still feel like the plot is not to your liking you can make it
+fancier by adding other options to `geom_bar()`, and by adding other
+layers to the plot. We don't have time to cover everything today but
+here is a example:
+
+```{r}
+ggplot(df.diab, aes(x = r_race, y = n, fill = r_diab)) + 
+  geom_bar(
+    width = 0.5,
+    position = "fill", 
+    stat = "identity"
+  ) + 
+  labs(
+    x = "Race/Ethnicity",
+    y = "Proportion",
+    fill = "Diabetic"
+  ) +
+  scale_fill_manual(values = c("#488f31", "#de425b")) + 
+  theme_minimal() + 
   theme(aspect.ratio = 1)
-```
-
-### Histogram
-
-### Box Plot
-
-### Stacked Bar Plot
-
-## Appendix
-
-```{r}
-#Boxplot of just the variable
-boxplot(sleepCleaned$ASISLEEP, col = "blue")
-
-#Boxplot of variable by race
-boxplot(sleepCleaned$ASISLEEP ~ sleepCleaned$raceRecoded, col = c("blue", "red", "pink", "green"))
-```
-
-```{r}
-sleepAndNervCleaned <- sleepCleaned[!(sleepCleaned$ASINERV == 7 | sleepCleaned$ASINERV == 8 | sleepCleaned$ASINERV == 9), ]
-
-#Take a quick look at the relationship between the two, what is the issue with this?
-plot(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$ASINERV, pch = 19, col = "blue")
-
-plot(jitter(sleepAndNervCleaned$ASISLEEP) ~ jitter(sleepAndNervCleaned$ASINERV), pch = 19, col = "blue")
-
-#Get the correlation
-(cor <- cor(sleepAndNervCleaned$ASISLEEP, sleepAndNervCleaned$ASINERV))
-
-#Actually do a Correlation Test 
-cor.test(sleepAndNervCleaned$ASISLEEP, sleepAndNervCleaned$ASINERV)
-
-#Linear Regression Model 
-lm1 <-  lm(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$ASINERV)
-summary(lm1)
-
-plot(jitter(sleepAndNervCleaned$ASISLEEP) ~ jitter(sleepAndNervCleaned$ASINERV), pch = 19, col = "red", ylab = "Hours of Sleep", xlab = "Scale of Nervousness (1 = All the time, 5 = None of the time)")
-abline(lm1$coef, col = "blue", lwd = 3)
-```
-
-Basic T Test
-
-```{r}
-sleepAndNervCleaned$sexRecoded <- Recode(sleepAndNervCleaned$SEX, '"1" = "Male"; "2" = "Female"')
-
-t.test(sleepAndNervCleaned$ASISLEEP ~ sleepAndNervCleaned$sexRecoded) 
-```
-
-Tables and Frequencies
-
-```{r}
-asinerv <- onlyAsianAndWhite[!(is.na(onlyAsianAndWhite$ASINERV)), ]
-asinerv <- asinerv[!(asinerv$ASINERV == 7 | asinerv$ASINERV == 8 | asinerv$ASINERV == 9), ]
-
-asinerv_table <- table(asinerv$ASINERV) #raw counts by themselves
-
-asinervbyrace <- table(asinerv$ASINERV, asinerv$raceRecoded) #raw counts by race
-
-racecounts <- colSums(asinervbyrace) 
-
-asinervbyrace_pct <- asinervbyrace
-for (i in 1:length(colnames(asinervbyrace))){
-  asinervbyrace_pct[ ,i] <- (asinervbyrace[ ,i]/ (racecounts[i])) * 100
-}
-
-#Table of Frequencies
-asinervbyrace_pct
-
-#Plot!
-ggplot(data.frame(asinervbyrace_pct), aes(fill=Var1, y=Freq, x=Var2)) + 
-    geom_bar(position="fill", stat="identity") + ggtitle("ASINERV") + annotate("text", x = 1:4, y = .05, label = racecounts)
 ```
