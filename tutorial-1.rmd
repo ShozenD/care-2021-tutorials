@@ -23,6 +23,46 @@ library(tidyverse)
 df.nhis <- read_csv("data/samadult_2017.csv")
 ```
 
+## Common Variable Types
+Data Type | Description
+----------- | ---------------------------------------------------------------------------
+`x <- TRUE`  | Logical = binary
+`x <- 15L`   | Integer = non-floating point numbers
+`x <- 15.0` | Double = floating point with double precision
+`x <- "orange"` | Character = just what it sounds like
+`x <- factor("a")` | Factor = a special type of coded (categorical) data
+
+You can switch between variable types using the functions as.___ (for example, `as.numeric()`, `as.factor()`). One exception is to use `toString()` to convert to a String. 
+
+```{r}
+# EX: SEX is encoded as a double, but if we wanted to convert it to a factor: 
+df.nhis$SEX <- as.factor(df.nhis$SEX)
+df.nhis$SEX
+
+# Now with this factor we can learn more about its levels
+```
+
+Use `levels()` to see the distinct values of a factor.
+
+```{r}
+levels(df.nhis$SEX)
+```
+
+The order in which these levels appear tells us what number gets assigned to each factor.
+
+Use `as.numeric()` to see actual stored numeric values (the original values in the dataframe, in our case).
+```{r}
+as.numeric(df.nhis$SEX)
+```
+
+To switch the order of the levels of the factor, use `relevel()`: 
+```{r}
+# Set 2 as the reference level instead of 1
+df.nhis$SEX <- relevel(df.nhis$SEX, "2")
+
+# This will be more important when we talk about regression modelling!
+```
+
 ## Data Types Overview
 
 -   **Vectors** are one dimensional objects of length N, all one data
