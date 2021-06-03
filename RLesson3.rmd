@@ -1,0 +1,194 @@
+---
+title: "rlesson3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(car)
+library(corrplot)
+library(PerformanceAnalytics)
+library(questionr)
+library(leaps)
+#install.packages("PerformanceAnalytics")
+```
+
+
+```{r, results = F}
+NHISdataAdult2018 <- read.csv("/Users/jaiveersingh/Desktop/samadult.csv")
+
+head(NHISdataAdult2018)
+names(NHISdataAdult2018)
+str(NHISdataAdult2018)
+```
+
+```{r}
+onlyAsianAndWhite <- NHISdataAdult2018[(NHISdataAdult2018$MRACBPI2 == 6 | NHISdataAdult2018$MRACBPI2 == 7 | NHISdataAdult2018$MRACBPI2 == 12 | NHISdataAdult2018$MRACBPI2 == 1), ] #Select only NHW, Asian Indians, Chinese, and Filipino
+
+onlyAsianAndWhite$raceRecoded <- Recode(onlyAsianAndWhite$MRACBPI2, '"6" = "Chinese"; "7" = "Filipino"; "12" = "Asian Indian"; "1" = "NHW"')
+```
+
+
+```{r, results = F}
+NHISdataAdult2018$DEP_1 # How often do you feel depressed
+NHISdataAdult2018$DEP_2 # do you take dep medicine
+NHISdataAdult2018$DEP_3R #how depressed were you the last time you felt depressed
+NHISdataAdult2018$ALDURA17 #Duration of depresion
+NHISdataAdult2018$AFLHCA17 #depression causes difficulty with activity
+NHISdataAdult2018$ASISAD # so sad nothign cheers you up
+NHISdataAdult2018$ASIHOPLS #hopeless
+NHISdataAdult2018$ASIWTHLS #worthless
+NHISdataAdult2018$ASINERV #felt nervous
+NHISdataAdult2018$ASIRSTLS #felt restless
+NHISdataAdult2018$ASIEFFRT #felt everything was an effort
+NHISdataAdult2018$ASIMUCH #feelings interfered with life
+
+NHISdataAdult2018$AHCAFYR2 # couldnt afford mental health counseling
+NHISdataAdult2018$AHCSYR1 # have you seen mental health practicioner in past 12 months
+```
+
+linear regression
+
+step 1: Identify Response and Predictors
+
+response variable: ALDUDA17 - duration of depression
+
+predictors: DEP_1, ASISAD, ASIHOPLS, ASIWTHLS, ASINERV, ASIRSTLS, ASIEFRT, ASIMUCH
+
+step 2: check relationships with scatterplots
+```{r}
+duraCleaned <- onlyAsianAndWhite[onlyAsianAndWhite$ALDURA17 < 97, ]
+duraCleaned$duradeplog <- log(duraCleaned$ALDURA17+1)
+
+cp <- na.omit(duraCleaned[, c("duradeplog", "DEP_1", "ASISAD", "ASIHOPLS", "ASIWTHLS", "ASINERV", "ASIRSTLS", "ASIEFFRT", "ASIMUCH")])
+
+sigcorr <- cor.mtest(cp, conf.level = .95)
+corrplot.mixed(cor(cp), lower.col="black", upper = "ellipse", tl.col = "black", number.cex=.7, 
+                tl.pos = "lt", tl.cex=.7, p.mat = sigcorr$p, sig.level = .05)
+```
+
+step 3: Fit Regression Model including all predictors
+```{r}
+lm1 <- lm(duradeplog ~ DEP_1 + ASISAD + ASIHOPLS + ASIWTHLS + ASINERV + ASIRSTLS + ASIEFFRT + ASIMUCH, data = cp)
+summary(lm1)
+```
+
+Step 4: Identify significant predictors, remove insignificant predictors - backwards stepwise regression
+Remove the predictor with the highest P values and rerun the linear model. Keep doing this and removing insignificant predictors until only significant predictors are left
+```{r}
+#Original - all predictors
+lm2 <- lm(duradeplog ~ DEP_1 + ASISAD + ASIHOPLS + ASIWTHLS + ASIRSTLS + ASIEFFRT + ASIMUCH, data = cp)
+summary(lm2)
+
+#After all of the insignifcant predictors are removed
+lm2 <- lm(duradeplog ~ ASIHOPLS + ASIRSTLS, data = cp)
+summary(lm2)
+```
+
+Step 5: Check model assupmtions
+```{r}
+qqPlot(lm2, pch = 19)
+```
+
+Best Subsets Regression - Use model criteria to choose the best model (ex BIC or adjusted R squared)
+
+```{r}
+library(leaps)
+
+#Get best subsets results - NOTE if we use . this means use all but the first column of the dataset
+mod1 <- regsubsets(duradeplog ~ ., data = cp, nvmax = 7)
+
+#What is in mod1?
+names(mod1)
+
+#use summary function to calculate comparison statistics
+mod1sum <- summary(mod1)
+names(mod1sum)
+
+#notice that 'which' is actually a matrix with TRUE/FALSE information on inclusion of each possible predictor
+mod1sum$which
+```
+
+```{r}
+#Best model according to Adjusted R-squared
+which.max(mod1sum$adjr2)
+
+#Which variables are in model 5
+names(cp)[mod1sum$which[which.max(mod1sum$adjr2), ]][-1]
+
+#Fit this model and show results
+cptemp <- cp[,mod1sum$which[which.max(mod1sum$adjr2), ]]
+summary(lm(duradeplog ~ .,data = cptemp))
+
+#Visual representation of results
+plot(mod1, main = "Best Model According to Adjusted R-squared", scale="adjr2")
+```
+
+```{r}
+#Best model according to Bayesian Information Criteria (BIC)
+which.min(mod1sum$bic)
+
+#Which variables are in model 2
+names(cp)[mod1sum$which[which.min(mod1sum$bic), ]][-1]
+
+#Fit this model and show results
+cptemp <- cp[,mod1sum$which[which.min(mod1sum$bic), ]]
+summary(lm(duradeplog ~ ., data = cptemp))
+
+```
+
+Logistic Regression
+```{r}
+seenPrac <- duraCleaned[!(is.na(duraCleaned$AHCSYR1)), ]
+seenPrac <- duraCleaned[!(duraCleaned$AHCSYR1 == 7 | duraCleaned$AHCSYR1 == 8 | duraCleaned$AHCSYR1 == 9), ]
+unique(seenPrac$AHCSYR1)
+logm <- na.omit(seenPrac[, c("AHCSYR1", "duradeplog", "DEP_1", "ASISAD", "ASIHOPLS", "ASIWTHLS", "ASINERV", "ASIRSTLS", "ASIEFFRT", "ASIMUCH")])
+
+lmod1 <- glm(as.factor(AHCSYR1) ~., data = logm, family = binomial("logit"))
+summary(lmod1)
+```
+
+```{r}
+x <- odds.ratio(lmod1)
+row.names(x)
+```
+
+```{r}
+boxLabels <- row.names(x)
+yAxis = length(boxLabels):1
+df <- data.frame(
+  yAxis = length(boxLabels):1,
+  boxOdds = x$OR,
+  boxCILow = x$`2.5 %`,
+  boxCIHigh = x$`97.5 %`
+)
+
+# Plot
+p <- ggplot(df, aes(x = boxOdds, y = yAxis))
+p + geom_vline(aes(xintercept = 1), size = .25, linetype = "dashed") +
+  geom_errorbarh(aes(xmax = boxCIHigh, xmin = boxCILow), size = .5, height = .2, color = "gray50") +
+  geom_point(size = 3.5, color = "orange") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank()) +
+  scale_y_continuous(breaks = yAxis, labels = boxLabels) +
+  scale_x_continuous(breaks = seq(0,7,1) ) +
+  coord_trans(x = "log10") +
+  ylab("") +
+  xlab("Odds ratio (log scale)") +
+  ggtitle("Have you seen a health practicioner in the last 12 months")
+```
+
+
+
+
+
+
+
+
+
+
+

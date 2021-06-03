@@ -1,0 +1,233 @@
+---
+title: "Rlesson2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(car)
+library(corrplot)
+library(PerformanceAnalytics)
+#install.packages("PerformanceAnalytics")
+```
+
+
+```{r, results = F}
+NHISdataAdult2018 <- read.csv("/Users/jaiveersingh/Desktop/samadult.csv")
+
+head(NHISdataAdult2018)
+names(NHISdataAdult2018)
+str(NHISdataAdult2018)
+```
+
+```{r}
+onlyAsianAndWhite <- NHISdataAdult2018[(NHISdataAdult2018$MRACBPI2 == 6 | NHISdataAdult2018$MRACBPI2 == 7 | NHISdataAdult2018$MRACBPI2 == 12 | NHISdataAdult2018$MRACBPI2 == 1), ] #Select only NHW, Asian Indians, Chinese, and Filipino
+
+onlyAsianAndWhite$raceRecoded <- Recode(onlyAsianAndWhite$MRACBPI2, '"6" = "Chinese"; "7" = "Filipino"; "12" = "Asian Indian"; "1" = "NHW"')
+```
+
+
+```{r, results = F}
+NHISdataAdult2018$DEP_1 # How often do you feel depressed
+NHISdataAdult2018$DEP_2 # do you take dep medicine
+NHISdataAdult2018$DEP_3R #how depressed were you the last time you felt depressed
+NHISdataAdult2018$ALDURA17 #Duration of depresion
+NHISdataAdult2018$AFLHCA17 #depression causes difficulty with activity
+NHISdataAdult2018$ASISAD # so sad nothign cheers you up
+NHISdataAdult2018$ASIHOPLS #hopeless
+NHISdataAdult2018$ASIWTHLS #worthless
+NHISdataAdult2018$ASINERV #felt nervous
+NHISdataAdult2018$ASIRSTLS #felt restless
+NHISdataAdult2018$ASIEFFRT #felt everything was an effort
+NHISdataAdult2018$ASIMUCH #feelings interfered with life
+
+NHISdataAdult2018$AHCAFYR2 # couldnt afford mental health counseling
+NHISdataAdult2018$AHCSYR1 # have you seen mental health practicioner in past 12 months
+```
+
+Tests!!!
+
+Correlation: Find association between variables based on r value (closest to -1 or 1 indicated stronger association, and close to 0 means little association). Can find the association between both catgeorical and continuous variables. 
+  -pearson - parametric, linear relationships(depends on distribution - x and y should have    normal distribution)
+    -Use for two continuous variables
+  -kendall and spearman - non-parametric 
+    -can work with continuous or categorical variables
+    
+    Cor(), cor.test(), corrplot.mixed()
+  
+T test - contiuous 
+  -standard 2 sample t test: use to determine whether difference in means between two groups 
+  -pairwise t test: multiple t tests between all possible combinations of groups
+
+Chi Squared - categorical 
+  -Chi square test of independence: compares two variables in a contingency table to see if they are related. In a more general sense, it tests to see whether distributions of categorical variables differ from each another
+    -small chi square result means obsevred data fits expected value well - relationship!
+
+ANOVA - analysis of variance between multiple groups
+  -Like the 2 sample t test, but can be for multiple groups! Check to see if mean differers between all the groups
+  
+```{r}
+# Correlations with pearson - continuous
+#onlyAsianAndWhite$ALDURA17
+
+hist(onlyAsianAndWhite$ALDURA17)
+
+# Clean the histogram
+duraCleaned <- onlyAsianAndWhite[!(is.na(onlyAsianAndWhite$ALDURA17)), ]
+duraCleaned <- onlyAsianAndWhite[onlyAsianAndWhite$ALDURA17 < 97, ]
+summary(duraCleaned$ALDURA17)
+hist(duraCleaned$ALDURA17, col = "blue")
+hist(log(duraCleaned$ALDURA17+1), col = "blue")
+boxplot(duraCleaned$ALDURA17 ~ duraCleaned$raceRecoded, col = c("blue", "red", "pink", "green"))
+
+#Basic visualization as a histogram
+hist(duraCleaned$ASISLEEP)
+
+#Cleaned up histogram
+sleepCleaned <- duraCleaned[duraCleaned$ASISLEEP < 20, ]
+hist(sleepCleaned$ASISLEEP, col = "blue")
+
+plot(sleepCleaned$ALDURA17, sleepCleaned$ASISLEEP, pch = 19, col = "blue")
+
+lm1 <-  lm(sleepCleaned$ASISLEEP ~ sleepCleaned$ALDURA17)
+plot(sleepCleaned$ALDURA17, sleepCleaned$ASISLEEP, pch = 19, col = "blue")
+abline(lm1$coef, col = "red", lwd = 3)
+
+#cor(log(sleepCleaned$ALDURA17+1), sleepCleaned$ASISLEEP, use = "na.or.complete", method = "pearson")
+cor(sleepCleaned$ALDURA17, sleepCleaned$ASISLEEP, use = "na.or.complete", method = "pearson")
+
+cor.test(sleepCleaned$ALDURA17, sleepCleaned$ASISLEEP, method = "pearson")
+```
+
+```{r}
+## Correlations with spearman - continous v continuous or continous v categorical
+
+# continuous vs categorical 
+asirstls <- duraCleaned[!(duraCleaned$ASIRSTLS == 7 | duraCleaned$ASIRSTLS == 8 | duraCleaned$ASIRSTLS == 9), ]
+
+plot(asirstls$ALDURA17 ~ asirstls$ASIRSTLS, pch = 19, col = "blue")
+
+plot(jitter(asirstls$ALDURA17) ~ jitter(asirstls$ASIRSTLS), pch = 19, col = "blue")
+
+lm1 <-  lm(asirstls$ASIRSTLS ~ asirstls$ALDURA17)
+plot(jitter(asirstls$ALDURA17) ~ jitter(asirstls$ASIRSTLS), pch = 19, col = "blue")
+abline(lm1$coef, col = "red", lwd = 3)
+
+(cor <- cor(asirstls$ALDURA17, asirstls$ASIRSTLS, use = "na.or.complete", method = "spearman"))
+
+cor.test(asirstls$ALDURA17, asirstls$ASIRSTLS, method = "spearman", exact = F)
+
+#categorical vs categorical
+dep_1 <- asirstls[!(asirstls$DEP_1 == 7 | asirstls$DEP_1 == 8 | asirstls$DEP_1 == 9), ]
+
+plot(jitter(dep_1$DEP_1) ~ jitter(dep_1$ASIRSTLS), pch = 19, col = "blue")
+
+lm1 <-  lm(dep_1$ASIRSTLS ~ dep_1$DEP_1)
+plot(jitter(dep_1$DEP_1) ~ jitter(dep_1$ASIRSTLS), pch = 19, col = "blue")
+abline(lm1$coef, col = "red", lwd = 3)
+
+(cor <- cor(dep_1$DEP_1, dep_1$ASIRSTLS, use = "na.or.complete", method = "spearman"))
+cor.test(dep_1$DEP_1, dep_1$ASIRSTLS, method = "spearman", exact = F)
+```
+
+```{r fig.height = 5, fig.width = 5}
+#CorPlots
+
+cp <- onlyAsianAndWhite[,c("DEP_1","DEP_2","DEP_3R","ALDURA17","ASISAD","ASIHOPLS","ASINERV","ASIRSTLS","ASIEFFRT","ASIMUCH","AHCAFYR2","AHCSYR1")]
+cp <- cp[complete.cases(cp), ]
+
+#Basic plot
+round(cor(cp), 2)
+corrplot(cor(cp), method = "ellipse")
+
+#First, get a matrix of correlation tests.
+sigcorr <- cor.mtest(cp, conf.level = .95) #test of of correlations statistically significant in matrix
+#sigcorr
+
+#Make cool plot
+corrplot.mixed(cor(cp), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7,order = "hclust", tl.pos = "lt", tl.cex=.7, p.mat = sigcorr$p, sig.level = .05) 
+
+#Male even cooler plot
+chart.Correlation(cp, histogram = TRUE, pch = 19)
+```
+
+```{r}
+# what to watch out for!
+
+cor(cp$DEP_2, cp$DEP_3R, use = "na.or.complete")
+cor.test(cp$DEP_2, cp$DEP_3R, method = "spearman", exact = F)
+
+plot(cp$DEP_2, cp$DEP_3R)
+
+c1 <- cp[!(cp$DEP_2 == 7 | cp$DEP_2 == 8 | cp$DEP_2 == 9), ]
+c2 <- c1[!(c1$DEP_3R == 7 | c1$DEP_3R == 8 | c1$DEP_3R == 9), ]
+
+cor(c2$DEP_2, c2$DEP_3R, use = "na.or.complete")
+cor.test(c2$DEP_2, c2$DEP_3R, method = "spearman", exact = F)
+
+```
+
+
+T Test
+
+```{r}
+# 2 Sample T test
+duraCleaned$sexRecoded <- Recode(duraCleaned$SEX, '"1" = "Male"; "2" = "Female"')
+
+boxplot(duraCleaned$ALDURA17 ~ duraCleaned$sexRecoded, col = c("pink", "blue"))
+t.test(duraCleaned$ALDURA17 ~ duraCleaned$sexRecoded) 
+```
+
+```{r}
+#pairwise t test 
+
+pairwise.t.test(duraCleaned$ALDURA17, duraCleaned$raceRecoded, p.adjust = "bonferroni")
+```
+
+```{r}
+#ANOVA
+
+sds <- tapply(duraCleaned$ALDURA17, duraCleaned$raceRecoded, sd)
+round(max(sds)/min(sds), 1)
+
+boxplot(as.numeric(duraCleaned$ALDURA17) ~ as.factor(duraCleaned$raceRecoded), col = "yellow", xlab = "Race")
+means <- tapply(duraCleaned$ALDURA17, duraCleaned$raceRecoded, mean) 
+points(means, col = "red", pch = 19)
+text(x = c(1:4), y = means + 5, labels = round(means,2))
+
+mod1 <-  aov(as.numeric(duraCleaned$ALDURA17) ~ as.factor(duraCleaned$raceRecoded))
+summary(mod1)
+
+TukeyHSD(mod1)
+
+par(mar = c(5,13,2,2))
+plot(TukeyHSD(mod1), las = 1)
+
+qqPlot(duraCleaned$ALDURA17, pch = 19)
+
+qqPlot(log(duraCleaned$ALDURA17+1), pch = 19)
+```
+
+```{r}
+#Chi squared
+  #null is that the two are independent
+
+t = table(dep_1$DEP_1, dep_1$ASIRSTLS)
+
+chisq.test(t)
+```
+
+
+
+
+
+
+
+
+
+
+
