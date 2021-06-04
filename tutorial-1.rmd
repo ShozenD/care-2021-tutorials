@@ -10,14 +10,43 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Installing and Loading Packages
+## Setup
+
+#### Installing and Loading Packages
+
+One of the great strengths of R is that it is open source. This means
+that it is freely distributed and that its source code is open to
+everyone, everywhere. This means that programmers from around the world
+can contribute to the development of R by improving base R
+functionalities or by adding new ones. A common way for R users to share
+new functionalities that they have developed is through packages (also
+called libraries) which are bundles of abstracted software (software
+that is designed to be easy to read and use) that other users can
+download and install.
+
+To install packages in R, we use the `install.packages("package")`
+command.
+
+To load packages, we use `library(package)`.
+
+Notice that when we load packages we don't need " " around the package
+name. For this tutorial we will be using the
+[tidyverse](https://www.tidyverse.org/) package, which is actually
+multiple R packages bundled together.
 
 ```{r message = FALSE, warning = FALSE}
 # install.packages("tidyverse")
-# install.packages("car")
 
 library(tidyverse)
 ```
+
+#### Loading Data
+
+To read data into R, we can use functions from the `readr` package (part
+of `tidyverse`). For example, you can read CSV
+(**C**omma-**S**eparated-**V**alues) files using the `read_csv()`
+function. Let's load the 2017 National Health Interview Survey (NHIS) as
+we will use it in later sections.
 
 ```{r message = F, warning = F}
 df.nhis <- read_csv("data/samadult_2017.csv")
@@ -71,7 +100,7 @@ df.nhis$SEX <- relevel(df.nhis$SEX, "2")
 -   **Data Frames** are rectangular arrays (rows and columns) of
     **mixed** data types (each column can be a different data type)
 
-#### Vectors
+#### i. Vectors
 
 all of same data type
 
@@ -88,7 +117,7 @@ test <- c("blue", "yellow", "green", "purple")
 # Insert code here
 ```
 
-#### Lists
+#### ii. Lists
 
 can be different data types
 
@@ -104,7 +133,7 @@ class(x[[3]])
 x.new <- xvec[[3]]     #put third item into a new object
 ```
 
-#### Tables
+#### iii. Tables
 
 tables are a convenient way to organize data of a certain data type
 
@@ -128,11 +157,11 @@ prop.table(y, margin = 2)
 # Insert code here
 ```
 
-#### Dataframes!
+#### iv. Data Frames
 
-This will be the datatype that you use the most. It is the easiest way
+This will be the data type that you use the most. It is the easiest way
 to deal with large data in R. Each column can be its own data type. Most
-functions require dataframes as inputs.
+functions require data frames as inputs.
 
 ```{r}
 # df.nhis <- read_csv("samadult_2017.csv")
@@ -144,7 +173,7 @@ y.df <- as.data.frame(y)
 
 To get the size/dimension/length of objects use
 
--   `dim()` for matrices and dataframes
+-   `dim()` for matrices and data frames
 -   `length()` for vectors and lists
 
 To find out the type of an object use
@@ -168,9 +197,9 @@ str(df.nhis.2)
 summary(df.nhis.2$AGE_P)
 ```
 
-## Working with Data Frames (Brief introduction to Tidyverse)
+## 2. Working with Data Frames (Brief introduction to Tidyverse)
 
--   As a data scientist you will be spending 70 \~ 90 % of the time
+-   As a data scientist you will be spending 70 \~ 90 % of your time
     pre-processing data (i.e. cleaning, re-coding, re-formatting).
 -   Using indexing and other traditional ways of formatting data works
     BUT the code can get really long and complex, which increases the
@@ -178,21 +207,28 @@ summary(df.nhis.2$AGE_P)
 -   R is a old language (28 years old!), so most of the new innovation
     occurs in the shape of software packages. There is a coherent system
     of packages for data manipulation, exploration, and visualization
-    called `tidyverse` that will make your life much easier.
+    called `tidyverse` that will make your life easier.
 -   We will be covering `dplyr` and `ggplot2` (both are part of the
     `tidyverse` ecosystem) in this tutorial.
 
-`dplyr` aims to provide a function for each basic verb of data
-manipulation. I will introduce the 3 most heavily used "verbs" but if
-you want to know what else is available, check out this [cheet
-sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf).
+The `dplyr` package aims to provide a function for each basic verb of
+data manipulation. I will introduce the some of the most heavily used
+"verbs" (i.e. functions) but there are many more available. These are
+some resources you can use to learn more about `dplr`.
 
-#### Renaming Columns
+-   [dplyr cheet
+    sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
 
-One of the first things you'll notice about NHIS is that some columns
-have really obscure column names. For example, the column that contains
-the race/ethnicity info is called **MRACBPI2** (Don't ask me why). So,
-one the first things you'll probably want to do is change the name!
+-   [R for data science](https://r4ds.had.co.nz/)
+
+#### i. Renaming Columns
+
+For this tutorial we will be using the 2017 wave of the National Health
+Interview Survey (NHIS). One of the first things you'll notice about
+NHIS is that columns have really obscure column names. For example, the
+column that contains the race/ethnicity info is called **MRACBPI2**
+(Don't ask me why). So, one the first things you'll want to do is change
+the column name.
 
 ```{r}
 ### Make a copy of the NHIS data frame ###
@@ -232,11 +268,13 @@ df.nhis <- rename_at(df.nhis, vars(old.names), ~new.names)
 ?rename
 ```
 
-#### Selecting Columns
+#### ii. Selecting Columns
 
-Another thing you may be thinking now is that 702 columns is too much! I
-don't need all the variables, I only need the ones that I am interested
-in! To select columns, simply use the `select` verb (function).
+Something else you may have noticed is that the NHIS data set contains
+702 columns. That amount of columns is way too much for any human being
+to handle and most of them are probably not going to be related to your
+research question for the summer. We can select a subset of columns that
+we are interested in using `select()`.
 
 ```{r}
 ### Traditional way ###
@@ -264,7 +302,7 @@ df.nhis.2 <- df.nhis %>%
 ?select
 ```
 
-#### Creating New Columns and Re-coding Variables
+#### iii. Creating New Columns and Re-coding Variables
 
 Let's take a look at the sex column for a second.
 
@@ -272,47 +310,46 @@ Let's take a look at the sex column for a second.
 df.nhis.2$sex # Extract a column as a vector
 ```
 
-It seems like the sex variable is a bunch of 1s and 2s. From the code
-book we know that 1 means male and 2 means female, but this is anyone
-without a code book won't know this and it is easy to forget. We want to
-re-code this variable such that instead of 1s and 2s, we have "males"
-and "females". We can do this by creating a new column using the
-`mutate` verb in combination with `ifelse`. I will also introduce a
-really convenient function `%>%` called a pipe function.
+It seems like the sex variable is a bunch of 1s and 2s. From the NHIS
+code book we know that 1 represents male and 2 represents female. We
+want to re-code this variable so that we have "males" and "females"
+instead of 1s and 2s. We can do this by creating a new column using
+`mutate()` in combination with `ifelse`. I will also introduce a really
+powerful tool: `%>%` (pipe function).
 
 ```{r}
-df.nhis.2 %>% 
+(
+df.nhis.2 <- df.nhis.2 %>% 
   mutate(
     r_sex = ifelse(sex == 1, "male", "female"),
   )
-
-# Without %>%
-df.nhis.2 <- mutate(df.nhis.2, 
-                    r_sex = ifelse(sex == 1, "male", "female"))
+)
 ```
 
-The pipe function passes the data frame to the mutate function, which
-means we don't have to type `mutate(df.nhis.2, ...)`. I will demonstrate
-later how using the pipe function will make your code much more shorter
-and readable.
-
-Here, we use `mutate` to create a new column named `r_sex` (short for
-re-coded sex) where if the value of the `sex` column was "1", then
-`r_sex` would be coded as "male". Else, `r_sex` would be coded as
+Here, we use `mutate()` to create a new column named `r_sex` (short for
+re-coded sex) where if the value of the `sex` column has a value of "1",
+then `r_sex` would have the "male". Else, `r_sex` would be coded as
 "female".
+
+The pipe function passes the data to the next function, sort of like how
+a ball would get passed around to different players in soccer or basket
+ball. Here, `%>%` passes the contents of `df.nhis.2` the mutate function. Note that we no longer have to include `df.nhis.2` in the first argument of `mutate()`. The pipe is a powerful tool because it allows you to focus on the transformations, not what's being transformed, which make the code easier to read. It will help you chain a series data transformation operations to create a data wrangling "sentence". 
 
 ```{r}
 # EXERCISE: Create a new column named r_diabetes, that recodes the diabetes column
 #           Hint: 1 -> "yes", 2 -> "no", 3 ~> Ignore for now!
 
-# df.nhis.2 <- (Uncomment and enter your code here!)
+df.nhis.2 <- df.nhis.2 %>% 
+  mutate(
+    r_diabetes = ifelse(diabetes == 1, "yes", "no")
+  )
 ```
 
 Now that we have re-coded `sex` and `diabetes` let's try and re-code
 `race`. The `ifelse` verb worked well on the previous two variables
-because they are binary, but `race` has multiple categories (well
+because they were binary, but `race` has multiple categories (well
 duh...) so we need something else. Fortunately, there is a generalized
-if-else verb called `case_when`.
+if-else verb called `case_when()`.
 
 ```{r}
 # Using mutate and case_when to recode race
@@ -360,20 +397,20 @@ df.nhis.2 <- df.nhis.2 %>%
   )
 ```
 
-#### Filtering rows
+#### iv. Filtering rows
 
 Sometimes (a lot of times really), you want to limit your sample to
 respondents with a certain characteristic. For example, this program
 focuses on Asian American subgroups so we might want to filter out the
 other race groups from our sample (Not that they are not important!).
-For this, we can use the `filter` verb.
+For this, we can use the `filter()` verb.
 
 ```{r}
 # Filter the data for nhw, and AA subgroups
 df.nhis.2 %>% 
   filter(r_race %in% c("nhw", "chinese", "filipino", "asian indian")) # %in% = if included in
 
-# Use can also do
+# We can also do
 df.nhis.2 %>%
   filter(r_race != "other") # != means "not equal to"
 
@@ -383,23 +420,24 @@ df.nhis.2 <- df.nhis.2 %>%
   filter(r_diab != "prediabetes")
 ```
 
-#### Creating Summaries by Group
+#### v. Creating Summaries by Group
 
 In the previous section, we learned about how to create bi-variate
 summary tables using the `table()` and `prop.table()` functions. For
-example we created a table that had the counts for each race/ethnicity
-for each age group. If we were to do this by hand, we would probably
-begin by:
+example we created a table that had the counts for number of respondents
+in each race/ethnicity group within each age group. If we were to do
+this by hand, we would probably take the following steps:
 
-1.  Splitting the dataset into groups (age, race/ethnicity) (**Split**)
+1.  Splitting the dataset into groups (e.g. age, race/ethnicity)
+    (**Split**)
 2.  Count the number of respondents in each group (**Apply**)
 3.  Combine the results into a summary table (**Combine**)
 
 Many data analysis tasks can be approached using this
-split-apply-combine paradigm, and `dplyr` makes this every easy through
-the use of `group_by()` and `summarise()` functions. Let's begin with an
-easy example where we count the number of repondents in each
-race/ethnicity group.
+split-apply-combine paradigm, and `dplyr` makes this very easy with
+`group_by()` and `summarise()` functions. Let's begin with a simple
+example where we count the number of repondents in each race/ethnicity
+group.
 
 ```{r}
 df.nhis.2 %>% 
@@ -407,15 +445,30 @@ df.nhis.2 %>%
   summarise(count = n())
 ```
 
-Here, we used `group_by(r_race)` to group the data by race/ethnicity
-which is then passed on to the `summarise()` function to compute the
-counts. Within the `summarise()` function, `count` is the name we want
-to give to the column of the summary table and `n()` tells the program
-to count the number of observations. In other words, we're telling the
-program to count the number of obs. per group and put it into a column
-named "count".
+Here, `group_by()` changed the unit of analysis from the complete data
+set to individual race/ethnicity groups. The `summarise()` function then
+collapses each data group into single rows to create a table of total
+counts. The `n()` function summarizes the data by computing the counts,
+and therefore it belongs to a family of functions called **summary
+functions**. Some useful summary functions include:
 
-We can also group by two variables (e.g. race/ethnicity and age)
+-   `mean()`
+-   `median()`,
+-   `sum()`
+-   `min()`,
+-   `max()`,
+-   `sd()`: (standard deviation)
+
+```{r}
+# EXERCISE: Create a table with the median age for each race/ethnicity
+df.nhis.2 %>%
+  group_by(r_race) %>%
+  summarise(avg = median(age, na.rm = T))
+```
+
+We can also group by multiple variables (e.g. race/ethnicity & age
+group). When you do this each summary peels off one level of the
+grouping, making it easy to progressively roll up a data set.
 
 ```{r}
 df.nhis.2 %>% 
@@ -428,28 +481,50 @@ df.nhis.2 %>%
   summarise(count = n())
 ```
 
-Now that we have the counts, we naturally want to compute the frequency.
-This is a bit trickier to do but straight forward once you get used to
-it. Going back to the race/ethnicity and age example, we need to first
-use `ungroup()` to reset the grouping. We than call `group_by()` again
-with only the `r_race` variable such that we only group by
-race/ethnicity. Now, when we use statistical summary functions such as
-`n()`, `sum()`, `mean()`, `median()`, they will calculate the value for
-each race/ethnicity group. To create a new column, recall that we use
-`mutate()`. We can create a new column named `prop` by dividing the raw
-count by the total count within each race/ethnicity group, computed by
-`sum(count)` to obtain the frequency.
+**Ungrouping**
+
+If you need to remove grouping, and and return to operations on the
+ungrouped data, use `ungroup()`.
 
 ```{r}
 df.nhis.2 %>%
-  group_by(r_race, r_age) %>% 
+  group_by(r_race, r_age) %>%
   summarise(count = n()) %>%
-  ungroup() %>%
-  group_by(r_race) %>%
-  mutate(prop = count/sum(count) * 100)
+  ungroup() # This removes the grouping
 ```
 
-## Introduction to Data Visualization with ggplot2
+**Grouped mutates**
+
+Grouping is most useful in conjunction with `summarise()`, but we can
+also do convenient operations with `mutate()`
+
+In the previous exercise, we computed the number of diabetic and
+non-diabetic respondents in each race/ethnicity group. The natural next
+step would be to obtain the proportions (i.e. the percentage of diabetic
+and non-diabetic respondents for each race).
+
+```{r}
+( # Repeat EXERCISE
+df.diab <- df.nhis.2 %>%
+  group_by(r_race, r_diab) %>% 
+  summarise(count = n()) %>%
+  ungroup()
+)
+
+df.diab %>%
+  group_by(r_race) %>%
+  mutate(
+    race_count = sum(count),
+    percentage = count/race_count * 100
+  )
+```
+
+By applying a `group_by()` before `mutate()`, the summary function
+`sum()` will compute the total counts for each race/ethnicity group
+instead of the complete data. We can then use this to compute the
+percentage of people with diabetes for each race group.
+
+## 3. Introduction to Data Visualization with ggplot2
 
 For your in-class projects this week you will be exploring the data sets
 in order to gain a better understanding of them and to start developing
@@ -470,7 +545,7 @@ very basics here, but if you want to master \`ggplot2\` Dr. Wickham has
 released his [book](https://ggplot2-book.org/introduction.html) for free
 online.
 
-### First Steps
+#### i. First Steps
 
 ![The 7 layers of
 ggplot2](https://raw.githubusercontent.com/ShozenD/care-tutorials-2021/main/figures/ggplot-layered.png){width="367"}
@@ -480,7 +555,7 @@ When you create plots using \`ggplot2\` you want to think in terms of
 their ordering. Let's start with the three most important layers at the
 bottom.
 
-Every \`ggplot2\` plot has three key components:
+Every `ggplot2` plot has three key components:
 
 1.  **data**. The foundation of your plot and always the first argument
     of the `ggplot` function.
@@ -520,6 +595,8 @@ ggplot(df.nhis.2, aes(x = r_race, y = age)) +
 ggplot(df.nhis.2, aes(r_race)) + 
   geom_bar()
 ```
+
+#### ii. Stacked Bar Plots
 
 Now that we have the basics down, we can begin to use `ggplot` to
 visualize our data. In a previous section you learned about how to make
@@ -600,4 +677,57 @@ ggplot(df.diab, aes(x = r_race, y = n, fill = r_diab)) +
   scale_fill_manual(values = c("#488f31", "#de425b")) + 
   theme_minimal() + 
   theme(aspect.ratio = 1)
+```
+
+## I'm Bored! Gimme something to do!
+
+#### Level 1: Adding Annotation
+
+The main issue with stacked bar plots is that we are dropping sample
+size information. Figure out a way to annotate stack bar plots with the
+sample size of each group (e.g. race/ethnicity).
+
+**Hint**:
+
+-   Create another data frame with the sample sizes for each group.
+-   You can use `geom_text()` to annotate plots.
+
+```{r}
+
+```
+
+#### Level 2: A Generalized Function for Stacked Bar Plots
+
+Since you'll probably be making lots and lots of stacked bar plots this
+week, it will be extremely useful to define a function that takes any
+pair of variable (given that they are both categorical) from NHIS and
+generates a nice looking plot. Complete the following R function.
+
+**Useful Resources**:
+
+-   **Chapter 3 and 4** of [Tidy
+    evaluation](https://tidyeval.tidyverse.org/) by Lionel Henry and
+    Hadley Wickham
+
+```{r}
+#' Creates a stacked bar plot for a given pair of categorical NHIS variables.
+#'
+#' @param data A NHIS data frame
+#' @param x Variable name
+#' @param y Variable name
+#'
+#' @return A stacked bar plot created using ggplot2
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'  ggstackbar(df.nhis, race, diabetes)
+#' }
+ggstackbar <- function(data, x, y){
+  # Data wrangling
+  
+  
+  # Plot the data
+  
+}
 ```
