@@ -53,15 +53,18 @@ df.nhis <- read_csv("data/samadult_2017.csv")
 ```
 
 ## Common Variable Types
-Data Type | Description
------------ | ---------------------------------------------------------------------------
-`x <- TRUE`  | Logical = binary
-`x <- 15L`   | Integer = non-floating point numbers
-`x <- 15.0` | Double = floating point with double precision
-`x <- "orange"` | Character = just what it sounds like
-`x <- factor("a")` | Factor = a special type of coded (categorical) data
 
-You can switch between variable types using the functions as.___ (for example, `as.numeric()`, `as.factor()`). One exception is to use `toString()` to convert to a String. 
+| Data Type          | Description                                         |
+|--------------------|-----------------------------------------------------|
+| `x <- TRUE`        | Logical = binary                                    |
+| `x <- 15L`         | Integer = non-floating point numbers                |
+| `x <- 15.0`        | Double = floating point with double precision       |
+| `x <- "orange"`    | Character = just what it sounds like                |
+| `x <- factor("a")` | Factor = a special type of coded (categorical) data |
+
+You can switch between variable types using the functions as.\_\_\_ (for
+example, `as.numeric()`, `as.factor()`). One exception is to use
+`toString()` to convert to a String.
 
 ```{r}
 # EX: SEX is encoded as a double, but if we wanted to convert it to a factor: 
@@ -77,14 +80,18 @@ Use `levels()` to see the distinct values of a factor.
 levels(df.nhis$SEX)
 ```
 
-The order in which these levels appear tells us what number gets assigned to each factor.
+The order in which these levels appear tells us what number gets
+assigned to each factor.
 
-Use `as.numeric()` to see actual stored numeric values (the original values in the dataframe, in our case).
+Use `as.numeric()` to see actual stored numeric values (the original
+values in the dataframe, in our case).
+
 ```{r}
 as.numeric(df.nhis$SEX)
 ```
 
-To switch the order of the levels of the factor, use `relevel()`: 
+To switch the order of the levels of the factor, use `relevel()`:
+
 ```{r}
 # Set 2 as the reference level instead of 1
 df.nhis$SEX <- relevel(df.nhis$SEX, "2")
@@ -225,10 +232,10 @@ some resources you can use to learn more about `dplr`.
 
 For this tutorial we will be using the 2017 wave of the National Health
 Interview Survey (NHIS). One of the first things you'll notice about
-NHIS is that columns have really obscure column names. For example, the
-column that contains the race/ethnicity info is called **MRACBPI2**
-(Don't ask me why). So, one the first things you'll want to do is change
-the column name.
+NHIS is that columns have really obscure names. For example, the column
+that contains the race/ethnicity info is called **MRACBPI2** (Don't ask
+me why). So, one the first things you'll want to do is change the column
+name.
 
 ```{r}
 ### Make a copy of the NHIS data frame ###
@@ -293,10 +300,8 @@ select(df.nhis, age, sex)
 
 # EXERCISE: Select the columns for age, sex, race, smoke, stroke, diabetes, and hypertension
 #           and save it in a dataframe called df.nhis.2 
-df.nhis.2 <- df.nhis %>% 
-  select(age, sex, race, smoke, stroke, diabetes, hypertension)
 
-# df.nhis.2 <- (Uncomment and enter your code here)
+df.nhis.2 <- 
   
 # Again, you can read the documentation for "select" by doing:
 ?select
@@ -333,7 +338,13 @@ then `r_sex` would have the "male". Else, `r_sex` would be coded as
 
 The pipe function passes the data to the next function, sort of like how
 a ball would get passed around to different players in soccer or basket
-ball. Here, `%>%` passes the contents of `df.nhis.2` the mutate function. Note that we no longer have to include `df.nhis.2` in the first argument of `mutate()`. The pipe is a powerful tool because it allows you to focus on the transformations, not what's being transformed, which make the code easier to read. It will help you chain a series data transformation operations to create a data wrangling "sentence". 
+ball. Here, `%>%` passes the contents of `df.nhis.2` the mutate
+function. Note that we no longer have to include `df.nhis.2` in the
+first argument of `mutate()`. The pipe is a powerful tool because it
+allows you to focus on the transformations, not what's being
+transformed, which make the code easier to read. It will help you chain
+a series data transformation operations to create a data wrangling
+"sentence".
 
 ```{r}
 # EXERCISE: Create a new column named r_diabetes, that recodes the diabetes column
@@ -436,7 +447,7 @@ this by hand, we would probably take the following steps:
 Many data analysis tasks can be approached using this
 split-apply-combine paradigm, and `dplyr` makes this very easy with
 `group_by()` and `summarise()` functions. Let's begin with a simple
-example where we count the number of repondents in each race/ethnicity
+example where we count the number of respondents in each race/ethnicity
 group.
 
 ```{r}
@@ -731,3 +742,74 @@ ggstackbar <- function(data, x, y){
   
 }
 ```
+
+## Homework
+
+**Kessler 6 Distress Scale**
+
+The NHIS measures general psychological distress using a well-validated
+[Likert-type scale](https://en.wikipedia.org/wiki/Likert_scale) called
+the Kessler 6 psychological distress scale (abbr. K-6). Below is a list
+of the 6 questions within the K-6:
+
+1.  During the past 30 days, how often did you feel so sad that nothing
+    could cheer you up?
+2.  During the past 30 days, how often did you feel nervous?
+3.  During the past 30 days, how often did you feel restless or fidgety?
+4.  During the past 30 days, how often did you feel hopeless?
+5.  During the past 30 days, how often did you feel that everything was
+    an effort
+6.  During the past 30 days, how often did you feel worthless?
+
+#### Assignment 1
+
+Load the 2017 wave of the NHIS sample adult file and using the code
+book, identify the variable names corresponding to K-6. **Rename** the
+corresponding column names to `sad`, `nervous`, `restless`, `hopeless`,
+`effort`, and `worthless` and create a subset of the data by
+**selecting** only the 6 columns and saving the resulting dataframe to a
+variable named `df.k6`.
+
+Hint: Use `rename()` and `select()` from `dplyr`.
+
+```{r}
+
+```
+
+#### Assignment 2
+
+There is an issue with the NHIS coding of the K-6 answers. Currently,
+the answer "ALL of the time" is encoded as 1 while, "NONE of the time"
+is encoded as 5 (refer to code book). However, for the purpose of our
+analysis, we want "ALL of the time" to be encoded as 4, "MOST of the
+time" to be encoded as 3, ..., and "NONE of the time" to be encoded as
+0. Additionally, we want to exclude those who "Refused", "Not
+ascertained", or "Don't know". Write the code that such that each K-6
+variable is scored on a range of 0-4 (higher score indicating more
+distress) and filter out those respondents who did not or could not
+answer.
+
+Hint: Use `mutate()` in combination with `case_when()` or `ifelse()`. Use `filter()` to exclude those with certain responses.
+
+```{r}
+
+```
+
+#### Assignment 3
+
+The overall K-6 scale ranges for 0-24, with higher score indicating more severe levels of distress. Generally, the K-6 is stratified into 4 levels with 0 indicating no distress, a score of less than 6 indicating mild distress, a score of less than 12 indicating moderate distress, and anything greater or equal to 12 indicating severe distress. Write the code that adds the K-6 scores to generate a total score and then stratify this into 4 categories.
+
+Hint: You can add columns in `mutate()` (e.g. `mutate(total = colA + colB + colC)`). Use mutate in combination with `case_when()` to stratify.
+
+```{r}
+
+```
+
+#### Assignment 4
+
+Use a stacked bar chart to visualize the proportion of people for each race/ethnic subgroup (NHW, Chinese, Asian Indian, and Filipino) who experienced none, mild, moderate, or severe psychological distress.
+
+```{r}
+
+```
+
