@@ -1,35 +1,134 @@
 ---
-title: "Rlesson2"
+title: "Introduction to Data Analysis in R (2)"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-library(ggplot2)
-library(car)
-library(corrplot)
-library(PerformanceAnalytics)
-#install.packages("PerformanceAnalytics")
-```
-
-
-```{r, results = F}
-NHISdataAdult2018 <- read.csv("/Users/jaiveersingh/Desktop/samadult.csv")
-
-head(NHISdataAdult2018)
-names(NHISdataAdult2018)
-str(NHISdataAdult2018)
-```
+## Setup
 
 ```{r}
-onlyAsianAndWhite <- NHISdataAdult2018[(NHISdataAdult2018$MRACBPI2 == 6 | NHISdataAdult2018$MRACBPI2 == 7 | NHISdataAdult2018$MRACBPI2 == 12 | NHISdataAdult2018$MRACBPI2 == 1), ] #Select only NHW, Asian Indians, Chinese, and Filipino
-
-onlyAsianAndWhite$raceRecoded <- Recode(onlyAsianAndWhite$MRACBPI2, '"6" = "Chinese"; "7" = "Filipino"; "12" = "Asian Indian"; "1" = "NHW"')
+library(tidyverse)
+detach(package:plyr)
 ```
 
+```{r message=FALSE}
+df.nhis <- read_csv("./data/nhis_clean.csv")
+```
+
+In the last session we covered the basics of data wrangling
+(pre-processing) with
+`dplyr`and some ways of visualizing uni-variate and bi-variate data using `ggplot2`. This session will be about how you can discover and test **associations** (not to be confused with causation) in your data sets, which is an important intermediate step before progressing to statistical inference using regression models.
+
+## Bivariate Data Visualization
+### Scatter Plots
+The first choice for visualizing bi-variate data is a scatter plot. However, in the case of NHIS most variables are categorical (nominal, ordinal, binary) and even if they are numerical, they are on a integer scale, which makes them unsuitable for scatter plots. As an example lets create a scatter plot with psychological distress (Kessler-6 scale) scores and neighborhood social cohesion scores.
+```{r}
+ggplot(df.nhis, aes(k6, nsc)) + 
+  geom_point()
+
+# We can mitigate the point overlap issue using geom_jitter(), which disperses the points randomly. However, as there are so many data points its still hard to gain any insights. 
+ggplot(df.nhis, aes(k6, nsc)) + 
+  geom_jitter(alpha = 0.1)
+```
+
+### Boxplots
+A better way to visualize the relationship between psychological distress and neighborhood social cohesion would be to use box plots. Before we plug the data into `ggplot2`, we need to factorize the data (CSV files unfortunately cannot encode factor information so we need to do this every time we re-load data).
+```{r}
+df.nhis.md_nsc <- df.nhis %>% 
+  filter(race %in% c("NHW", "Chinese", "Asian Indian", "Filipino")) %>%
+  mutate(
+    md = factor(md, levels = c("None", "Mild", "Moderate", "Severe")),
+    race = factor(race, levels = c("NHW", "Asian Indian", "Chinese", "Filipino"))
+  ) %>% 
+  drop_na(nsc, md)
+
+ggplot(df.nhis.md_nsc, aes(md, nsc)) + 
+  geom_boxplot()
+
+ggplot(df.nhis.md_nsc, aes(md, nsc, fill = race)) + 
+  geom_boxplot(width = 0.3) + 
+  # facet_wrap(~race, nrow = 1, ncol = 4) + 
+  theme()
+```
+So, it seems like mental distress has a negative correlation with neighborhood social cohesion, especially for non-Hispanic Whites and Asian Indians (in comparison to Chineses and Filipinos).
+
+### Barplots
+```{r}
+nsc.tertiles <- quantile(df.nhis.md_nsc$nsc, probs = c(.33, .66))
+
+df.nhis.md_nsc <- df.nhis.md_nsc %>% 
+  mutate(
+    rnsc = case_when(
+      nsc < nsc.tertiles[1] ~ "low",
+      nsc < nsc.tertiles[2] ~ "medium",
+      nsc >= nsc.tertiles[2] ~ "high"
+    )
+  ) %>% 
+  mutate(rnsc = factor(rnsc, levels = c("low", "medium", "high"))) # You can't put factor in the same mutate
+
+df.md_nsc.sum <- df.nhis.md_nsc %>% 
+  group_by(rnsc, md) %>% 
+  dplyr::summarise(
+    N = n()
+  ) %>% 
+  ungroup(md) %>% 
+  mutate(
+    prop = N/sum(N)
+  )
+
+ggplot(df.md_nsc.sum, aes(x = rnsc, y = prop, fill = md)) + 
+  geom_bar(
+    position = "fill", 
+    stat = "identity"
+  )
+```
+
+## Bivariate Association Tests
+### Correlation
+```{r}
+cor.test(~ k6 + nsc, df.nhis.md_nsc)
+
+cor.test(~ k6 + nsc, data = df.nhis.md_nsc, method = "spearman")
+
+cor.test(~k6 + nsc, filter(df.nhis.md_nsc, race == "NHW"))
+```
+
+### t-test
+```{r}
+```
+
+
+### Chi-squared test
+```{r}
+table(df.nhis.md_nsc$md, df.nhis.md_nsc$rnsc) %>% chisq.test()
+```
+
+### ANOVA
+
+
+## Directed Acyclic Graphs (DAGs)
+### Superious Correlations
+https://www.tylervigen.com/spurious-correlations
+
+Bi-variate data visualization (NHIS)
+
+Bi-variate tests for association
+
+How to check for con-founders in R (put in regression) process of
+identifying con-founders How to add an interaction term
+
+Assumptions for linear and logit regression Outcome variables cannot be
+too skewed
+
+qq-plot
+
+equal residual variance
 
 ```{r, results = F}
 NHISdataAdult2018$DEP_1 # How often do you feel depressed
@@ -51,25 +150,30 @@ NHISdataAdult2018$AHCSYR1 # have you seen mental health practicioner in past 12 
 
 Tests!!!
 
-Correlation: Find association between variables based on r value (closest to -1 or 1 indicated stronger association, and close to 0 means little association). Can find the association between both catgeorical and continuous variables. 
-  -pearson - parametric, linear relationships(depends on distribution - x and y should have    normal distribution)
-    -Use for two continuous variables
-  -kendall and spearman - non-parametric 
-    -can work with continuous or categorical variables
-    
+Correlation: Find association between variables based on r value
+(closest to -1 or 1 indicated stronger association, and close to 0 means
+little association). Can find the association between both catgeorical
+and continuous variables. -pearson - parametric, linear
+relationships(depends on distribution - x and y should have normal
+distribution) -Use for two continuous variables -kendall and spearman -
+non-parametric -can work with continuous or categorical variables
+
     Cor(), cor.test(), corrplot.mixed()
-  
-T test - contiuous 
-  -standard 2 sample t test: use to determine whether difference in means between two groups 
-  -pairwise t test: multiple t tests between all possible combinations of groups
 
-Chi Squared - categorical 
-  -Chi square test of independence: compares two variables in a contingency table to see if they are related. In a more general sense, it tests to see whether distributions of categorical variables differ from each another
-    -small chi square result means obsevred data fits expected value well - relationship!
+T test - contiuous -standard 2 sample t test: use to determine whether
+difference in means between two groups -pairwise t test: multiple t
+tests between all possible combinations of groups
 
-ANOVA - analysis of variance between multiple groups
-  -Like the 2 sample t test, but can be for multiple groups! Check to see if mean differers between all the groups
-  
+Chi Squared - categorical -Chi square test of independence: compares two
+variables in a contingency table to see if they are related. In a more
+general sense, it tests to see whether distributions of categorical
+variables differ from each another -small chi square result means
+obsevred data fits expected value well - relationship!
+
+ANOVA - analysis of variance between multiple groups -Like the 2 sample
+t test, but can be for multiple groups! Check to see if mean differers
+between all the groups
+
 ```{r}
 # Correlations with pearson - continuous
 #onlyAsianAndWhite$ALDURA17
@@ -171,7 +275,6 @@ cor.test(c2$DEP_2, c2$DEP_3R, method = "spearman", exact = F)
 
 ```
 
-
 T Test
 
 ```{r}
@@ -220,14 +323,3 @@ t = table(dep_1$DEP_1, dep_1$ASIRSTLS)
 
 chisq.test(t)
 ```
-
-
-
-
-
-
-
-
-
-
-
