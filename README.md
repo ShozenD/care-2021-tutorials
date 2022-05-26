@@ -3,13 +3,13 @@
 ## Syllabus
 
 ### Session 1: Basic R
-Tutor: Jaiveer Singh
+**Tutor:** Jaiveer Singh
 * RStudio IDE environment
 * Basic data types and operations
 * Vectors, Lists, and Matrices
 
 ### Session 2: Data Processing and Univariate Analysis
-Tutor: Jaiveer Singh
+**Tutor:** Jaiveer Singh
 - Dataframes and `dplyr`
 - Measures of central tendency
 - Introduction to `ggplot2`
@@ -21,7 +21,7 @@ Tutor: Jaiveer Singh
     - Non-parametric tests
 
 ### Session 3: Bivariate Analysis
-Tutor: Shozen Dan
+**Tutor:** Shozen Dan
 - Introduction to `ggplot2` continued
     - Scatter plots
     - Boxplots
@@ -32,17 +32,19 @@ Tutor: Shozen Dan
 - Correlogram
 
 ### Session 4: Regression
-Tutor: Shozen Dan
+**Tutor:** Shozen Dan
 - Linear regression
 - Logistic regression
 - Poisson regression
     - Negative Binomial
+- Model selection
+- Posthoc tests (?)
 
 ### Session 5: Standardization
-Tutor: Shozen Dan
+**Tutor:** Shozen Dan
 - Direct standardization
 - Indirect standardization
 
 ### Session 6: Population weighting
-Tutor: ?
+**Tutor:** ?
 
