@@ -27,23 +27,23 @@
     - Boxplots
 - Measures of bivariate association
     - Covariance and Correlation
+    - Odds ratios
     - Chi-squared test
-    - Simple linear regression
-- Correlogram
 
 ### Session 4: Regression
 **Tutor:** Shozen Dan
-- Linear regression
-- Logistic regression
-- Poisson regression
-    - Negative Binomial
-- Model selection
-- Posthoc tests (?)
+- Normal linear models
+    - Simple linear regression
+    - Multivariate linear regression
+- Generalized linear models
+    - Logistic regression
+    - Poisson regression
 
 ### Session 5: Standardization
 **Tutor:** Shozen Dan
 - Direct standardization
 - Indirect standardization
+- Poisson population models
 
 ### Session 6: Population weighting
 **Tutor:** ?
